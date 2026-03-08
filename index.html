@@ -2,282 +2,203 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::INVENTORY_DRIVEN_CRAFTING v1.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIKELO::CONTRACT_TRACKER v1.0</title>
     <style>
         :root {
-            --t-orange: #FF8C00; /* Terminal Orange */
-            --bg: #000;
-            --card: rgba(10,10,10,0.8);
-            --border: #333;
-            --success: #00FF00;
-            --error: #ef4444;
+            --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a;
+            --border: #333; --success: #00FF00; --error: #ef4444;
         }
-
         body {
-            background: var(--bg);
-            color: #fff;
-            font-family: 'Courier New', monospace; /* Monospace Terminal */
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
+            background: var(--bg); color: #fff; font-family: 'Courier New', monospace;
+            margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
-
-        /* --- SIDEBAR: INVENTORY (PERSISTENT LEDGER) --- */
+        /* --- SIDEBAR: STOCK LEDGER --- */
         .sidebar {
-            width: 300px;
-            border-right: 2px solid var(--t-orange); /* Orange divider */
-            padding: 20px;
-            overflow-y: auto;
-            background: #050505;
-            box-sizing: border-box;
-        }
-        .sidebar h2 {
-            color: var(--t-orange);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            width: 320px; border-right: 2px solid var(--t-orange);
+            padding: 20px; overflow-y: auto; background: #050505;
         }
         .inv-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            background: var(--card);
-            padding: 10px;
-            border: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; background: var(--card); padding: 8px; border: 1px solid var(--border);
         }
-        .inv-item span { font-size: 13px; text-transform: uppercase; color: #aaa; }
         .inv-item input {
-            width: 60px;
-            background: #000;
-            border: 1px solid var(--t-orange); /* Orange focus */
-            color: var(--t-orange);
-            text-align: center;
-            font-family: monospace;
-            padding: 5px;
-            outline: none;
+            width: 60px; background: #000; border: 1px solid var(--t-orange);
+            color: var(--t-orange); text-align: center; font-family: monospace;
         }
-
-        /* --- MAIN: DYNAMIC RECIPES --- */
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
+        /* --- MAIN CONTENT --- */
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .header-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--t-orange);
-            padding-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px;
         }
-        .header-controls h1 {
-            color: #fff;
-            font-size: 20px;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .filter-group { display: flex; gap: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        /* --- CONTRACT CARDS --- */
+        .card {
+            background: var(--card); border: 1px solid var(--border); padding: 15px;
+            position: relative; transition: 0.2s;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
+        .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
+        .card.completed { opacity: 0.5; border-style: dashed; }
+        .reward-text { color: #a855f7; font-size: 12px; display: block; margin: 5px 0; }
+        .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
+        .ingred-list li { margin-bottom: 4px; }
+        .status-ready { color: var(--success); }
+        .status-missing { color: var(--error); }
+        /* --- BUTTONS --- */
+        .btn {
+            background: transparent; border: 1px solid var(--t-orange); color: var(--t-orange);
+            padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold;
         }
-        
-        /* --- RECIPE CARDS (TERMINAL STYLE) --- */
-        .recipe-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .recipe-card.can-craft {
-            border-color: var(--success); /* Green for ready */
-            background: rgba(0, 255, 0, 0.05);
-        }
-        .recipe-name {
-            font-weight: bold;
-            font-size: 16px;
-            color: #fff;
-            margin-bottom: 12px;
-            display: block;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .ingred-list {
-            font-size: 12px;
-            color: #888;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .ingred-list li { margin-bottom: 5px; font-variant-numeric: tabular-nums; }
-        .ingred-list li.missing { color: var(--error); text-decoration: line-through; } /* Clear missing */
-        .ingred-list li.have { color: var(--success); }
-        
-        /* --- TERMINAL BUTTONS --- */
-        .btn-craft {
-            background: transparent;
-            border: 1px solid var(--t-orange);
-            color: var(--t-orange);
-            padding: 10px;
-            width: 100%;
-            cursor: pointer;
-            margin-top: 15px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-            font-family: monospace;
-            transition: 0.1s;
-        }
-        .btn-craft:hover:not(:disabled) { background: rgba(255,140,0,0.1); color: #fff; }
-        .btn-craft:disabled { border-color: #444; color: #444; cursor: not-allowed; }
-        
-        .toggle-btn {
-            padding: 10px 15px;
-            background: #0d0d0d;
-            border: 1px solid var(--border);
-            color: #888;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 11px;
-            font-family: monospace;
-            margin-left: 5px;
-        }
-        .toggle-btn.active {
-            background: rgba(255,140,0,0.1);
-            border-color: var(--t-orange);
-            color: var(--t-orange);
-            box-shadow: 0 0 5px var(--t-orange);
-        }
+        .btn:hover:not(:disabled) { background: rgba(255,140,0,0.1); }
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; }
+        .btn-success { border-color: var(--success); color: var(--success); }
+        .active-filter { background: var(--t-orange) !important; color: #000 !important; }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <h2>STOCK_LEDGER</h2>
-    <div id="inventory-list">
-        </div>
+    <h2 style="color: var(--t-orange); font-size: 14px;">[ STOCK_LEDGER ]</h2>
+    <div id="inventory-list"></div>
+    <button class="btn" style="width: 100%; margin-top: 20px;" onclick="resetAll()">[ WIPE_ALL_DATA ]</button>
 </div>
 
 <div class="main-content">
     <div class="header-controls">
-        <h1>RECIPE_MANIFEST</h1>
-        <div style="display:flex;">
-            <button id="show-all" class="toggle-btn" onclick="setFilter('all')">[ ALL ]</button>
-            <button id="show-craftable" class="toggle-btn active" onclick="setFilter('craftable')">[ CRAFTABLE ]</button>
+        <h1 id="stats-header">WIKELO::MANIFEST</h1>
+        <div class="filter-group">
+            <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+            <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
         </div>
     </div>
-    <div id="recipe-grid" class="grid">
-        </div>
+    <div id="contract-grid" class="grid"></div>
 </div>
 
 <script>
-    // Master Database
-    const MATERIALS = ["Copper", "Silicon", "RMC", "Aluminium", "Iron"];
-    const RECIPES = [
-        { name: "Multi-Tool", ingredients: { "Copper": 2, "Silicon": 1 } },
-        { name: "MedPen", ingredients: { "RMC": 5, "Aluminium": 2 } },
-        { name: "Oxygen Tank", ingredients: { "Aluminium": 10, "Iron": 5 } },
-        { name: "Tractor Beam", ingredients: { "Copper": 10, "Silicon": 8, "Iron": 2 } },
-        { name: "Composite Armor", ingredients: { "RMC": 20, "Aluminium": 15, "Iron": 10 } }
+    // Data structures extracted from provided source
+    const MATERIALS = [
+        {id: "wikelo-favor", name: "Wikelo Favor"},
+        {id: "mg-scrip", name: "MG Scrip"},
+        {id: "carinite-pure", name: "Carinite (Pure)"},
+        {id: "valakkar-pearl-aaa", name: "Valakkar Pearl (AAA)"},
+        {id: "asd-secure-drive", name: "ASD Secure Drive"}
     ];
 
-    let userInventory = JSON.parse(localStorage.getItem('wikelo-inv')) || { "Copper": 0, "Silicon": 0, "RMC": 0, "Aluminium": 0, "Iron": 0 };
-    let filterMode = 'craftable'; // Starts filtered
+    const CONTRACTS = [
+        {id: "ana-endro", name: "Armor with horn and string", reward: "Ana Armor Endro Set", ingredients: [{id:"carinite-pure", qty:1}, {id:"wikelo-favor", qty:5}]},
+        {id: "bokto-armor", name: "Make glowy armor", reward: "Bokto Armor Set", ingredients: [{id:"valakkar-pearl-aaa", qty:1}, {id:"wikelo-favor", qty:5}]},
+        {id: "geist-snow", name: "Hide Snow Suit", reward: "Geist Snow Camo Set", ingredients: [{id:"asd-secure-drive", qty:4}, {id:"wikelo-favor", qty:2}]}
+    ];
+
+    // State Persistence
+    let inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
+    let completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
+    let filterMode = 'craftable';
 
     function init() {
-        renderInventoryInputs();
+        renderInventory();
         updateDisplay();
     }
 
-    function renderInventoryInputs() {
+    function renderInventory() {
         const container = document.getElementById('inventory-list');
         container.innerHTML = '';
         MATERIALS.forEach(mat => {
+            const val = inventory[mat.id] || 0;
             const div = document.createElement('div');
             div.className = 'inv-item';
             div.innerHTML = `
-                <span>${mat}</span>
-                <input type="number" value="${userInventory[mat]}" min="0" onchange="updateInv('${mat}', this.value)">
+                <span>${mat.name}</span>
+                <input type="number" value="${val}" min="0" onchange="updateStock('${mat.id}', this.value)">
             `;
             container.appendChild(div);
         });
     }
 
-    function updateInv(mat, val) {
-        userInventory[mat] = parseInt(val) || 0;
-        localStorage.setItem('wikelo-inv', JSON.stringify(userInventory));
+    function updateStock(id, val) {
+        inventory[id] = Math.max(0, parseInt(val) || 0);
+        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
         updateDisplay();
     }
 
     function setFilter(mode) {
         filterMode = mode;
-        document.getElementById('show-all').classList.toggle('active', mode === 'all');
-        document.getElementById('show-craftable').classList.toggle('active', mode === 'craftable');
+        document.getElementById('f-all').classList.toggle('active-filter', mode === 'all');
+        document.getElementById('f-craft').classList.toggle('active-filter', mode === 'craftable');
         updateDisplay();
     }
 
     function updateDisplay() {
-        const grid = document.getElementById('recipe-grid');
+        const grid = document.getElementById('contract-grid');
         grid.innerHTML = '';
+        let craftableCount = 0;
 
-        RECIPES.forEach(recipe => {
+        CONTRACTS.forEach(contract => {
+            const isDone = completed.includes(contract.id);
             let canCraft = true;
-            let ingredientHTML = '';
+            let ingredHTML = '';
 
-            for (const [ingred, amt] of Object.entries(recipe.ingredients)) {
-                const has = userInventory[ingred] || 0;
-                const isMissing = has < amt;
-                if (isMissing) canCraft = false;
-
-                ingredientHTML += `<li class="${isMissing ? 'missing' : 'have'}">
-                    ${ingred}: ${has} / ${amt}
+            contract.ingredients.forEach(ing => {
+                const owned = inventory[ing.id] || 0;
+                const missing = owned < ing.qty;
+                if (missing) canCraft = false;
+                
+                const matName = MATERIALS.find(m => m.id === ing.id).name;
+                ingredHTML += `<li class="${missing ? 'status-missing' : 'status-ready'}">
+                    ${owned}/${ing.qty} ${matName}
                 </li>`;
-            }
+            });
 
-            if (filterMode === 'all' || canCraft) {
+            if (canCraft && !isDone) craftableCount++;
+
+            // Filter logic
+            if (filterMode === 'all' || (canCraft && !isDone)) {
                 const card = document.createElement('div');
-                card.className = `recipe-card ${canCraft ? 'can-craft' : ''}`;
+                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isDone ? 'completed' : ''}`;
                 card.innerHTML = `
-                    <span class="recipe-name">${recipe.name}</span>
-                    <ul class="ingred-list">${ingredientHTML}</ul>
-                    <button class="btn-craft" ${!canCraft ? 'disabled' : ''} onclick="craft('${recipe.name}')">
-                        ${canCraft ? '[ CRAFT ]' : '[ INSUFFICIENT_STOCK ]'}
-                    </button>
+                    <div style="font-weight: bold; font-size: 14px;">${contract.name}</div>
+                    <span class="reward-text">REWARD: ${contract.reward}</span>
+                    <ul class="ingred-list">${ingredHTML}</ul>
+                    ${isDone ? '<button class="btn" disabled>[ COMPLETED ]</button>' : 
+                    `<button class="btn ${canCraft ? 'btn-success' : ''}" ${!canCraft ? 'disabled' : ''} 
+                        onclick="executeContract('${contract.id}')">
+                        ${canCraft ? '[ HAND_IN_CONTRACT ]' : '[ INSUFFICIENT_STOCK ]'}
+                    </button>`}
                 `;
                 grid.appendChild(card);
             }
         });
+
+        document.getElementById('stats-header').innerText = `MANIFEST :: ${craftableCount} READY`;
     }
 
-    function craft(recipeName) {
-        const recipe = RECIPES.find(r => r.name === recipeName);
-        if (!recipe) return;
-        if(!confirm(`EXECUTE CRAFT: ${recipeName}? MATERIALS WILL BE DEDUCTED.`)) return;
+    function executeContract(id) {
+        const contract = CONTRACTS.find(c => c.id === id);
+        if (!contract || !confirm(`CONFIRM HAND-IN: ${contract.name}?`)) return;
 
-        // Subtract materials
-        for (const [ingred, amt] of Object.entries(recipe.ingredients)) {
-            userInventory[ingred] -= amt;
-        }
+        // Deduct items
+        contract.ingredients.forEach(ing => {
+            inventory[ing.id] -= ing.qty;
+        });
+
+        completed.push(id);
+        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
+        localStorage.setItem('wikelo-completed', JSON.stringify(completed));
         
-        localStorage.setItem('wikelo-inv', JSON.stringify(userInventory));
-        renderInventoryInputs();
+        renderInventory();
         updateDisplay();
+    }
+
+    function resetAll() {
+        if (confirm("ERASE ALL SAVED DATA?")) {
+            localStorage.clear();
+            location.reload();
+        }
     }
 
     window.onload = init;
 </script>
-
 </body>
 </html>
