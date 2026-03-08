@@ -3,50 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIKELO::CONTRACT_TRACKER v1.5</title>
+    <title>WIKELO::CONTRACT_TRACKER v1.6</title>
     <style>
         :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 350px; border-right: 2px solid var(--t-orange); padding: 20px; overflow-y: auto; background: #050505; }
-        .category-label { color: var(--t-orange); font-size: 10px; text-transform: uppercase; margin-top: 15px; display: block; border-bottom: 1px solid #222; }
-        .inv-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; background: var(--card); padding: 5px 8px; border: 1px solid var(--border); }
-        .inv-item input { width: 55px; background: #000; border: 1px solid var(--t-orange); color: var(--t-orange); text-align: center; font-family: monospace; font-size: 11px; outline: none; }
+        
+        /* --- SIDEBAR & COLLAPSIBLE TABS --- */
+        .sidebar { width: 380px; border-right: 2px solid var(--t-orange); padding: 20px; overflow-y: auto; background: #050505; }
+        .tab-header { 
+            background: #111; border: 1px solid var(--border); color: var(--t-orange); 
+            padding: 10px; cursor: pointer; display: flex; justify-content: space-between; 
+            font-size: 11px; margin-top: 5px; text-transform: uppercase; font-weight: bold;
+        }
+        .tab-header:hover { background: #1a1a1a; }
+        .tab-content { display: none; padding: 5px; border: 1px solid #222; border-top: none; background: #080808; }
+        .tab-content.open { display: block; }
+        
+        .inv-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; padding: 4px 8px; border-bottom: 1px solid #111; }
+        .inv-item span { font-size: 11px; color: #aaa; }
+        .inv-item input { width: 50px; background: #000; border: 1px solid var(--t-orange); color: var(--t-orange); text-align: center; font-size: 11px; outline: none; }
+
+        /* --- MAIN CONTENT --- */
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; position: relative; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 15px; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; position: relative; }
         .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
-        .card.completed { opacity: 0.4; border-style: dashed; }
         .card.pinned { border-left: 4px solid var(--t-orange); }
-        .card-cat { font-size: 9px; text-transform: uppercase; background: #222; padding: 2px 5px; margin-bottom: 8px; display: inline-block; }
         .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; }
         .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
         .status-ready { color: var(--success); }
         .status-missing { color: var(--error); }
         .btn { background: transparent; border: 1px solid var(--t-orange); color: var(--t-orange); padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold; font-family: monospace; }
-        .btn:hover:not(:disabled) { background: rgba(255,140,0,0.1); }
         .active-filter { background: var(--t-orange) !important; color: #000 !important; }
-        #manifest-search { width: 220px; text-align: left; cursor: text; outline: none; }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <h2 style="color: var(--t-orange); font-size: 14px;">[ STOCK_LEDGER ]</h2>
-    <div id="inventory-list">LOADING...</div>
-    <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_ALL_DATA ]</button>
+    <div id="inventory-tabs">
+        </div>
+    <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_DATA ]</button>
 </div>
 
 <div class="main-content">
     <div class="header-controls">
         <h1 id="stats-header">WIKELO::MANIFEST</h1>
         <div style="display:flex; gap:10px; align-items:center;">
-            <input type="text" id="manifest-search" class="btn" placeholder="SEARCH_MANIFEST..." oninput="updateDisplay()">
-            <div class="filter-group" style="display:flex; gap:5px;">
-                <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
-                <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
-                <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
-            </div>
+            <input type="text" id="manifest-search" class="btn" style="width:200px; text-align:left;" placeholder="SEARCH..." oninput="updateDisplay()">
+            <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+            <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
+            <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
         </div>
     </div>
     <div id="contract-grid" class="grid"></div>
@@ -60,35 +68,50 @@
     let tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
     let filterMode = 'craftable';
 
-    // Fetch full data from JSON
+    const CATEGORIES = {
+        "currency": "Currency & Scrips",
+        "ores": "Raw Materials",
+        "creature": "Creature Materials",
+        "medals": "Artifacts & Medals",
+        "tech": "Tech & RCMBNTs",
+        "gear": "Weapons, Gear & Vehicles"
+    };
+
     async function loadSystemData() {
-        try {
-            const response = await fetch('wikelo-data.json');
-            const data = await response.json();
-            MATERIALS = data.materials;
-            CONTRACTS = data.contracts;
-            renderInventory();
-            updateDisplay();
-        } catch (e) {
-            document.getElementById('inventory-list').innerText = "ERROR: JSON_DATA_NOT_FOUND";
-            console.error(e);
-        }
+        const response = await fetch('wikelo-data.json');
+        const data = await response.json();
+        MATERIALS = data.materials;
+        CONTRACTS = data.contracts;
+        renderInventoryTabs();
+        updateDisplay();
     }
 
-    function renderInventory() {
-        const container = document.getElementById('inventory-list');
+    function renderInventoryTabs() {
+        const container = document.getElementById('inventory-tabs');
         container.innerHTML = '';
-        let lastCat = "";
-        MATERIALS.forEach(mat => {
-            if(mat.cat !== lastCat) {
-                const label = document.createElement('span');
-                label.className = 'category-label'; label.innerText = mat.cat;
-                container.appendChild(label); lastCat = mat.cat;
-            }
-            const div = document.createElement('div');
-            div.className = 'inv-item';
-            div.innerHTML = `<span>${mat.name}</span><input type="number" value="${inventory[mat.id] || 0}" min="0" onchange="updateStock('${mat.id}', this.value)">`;
-            container.appendChild(div);
+        
+        Object.entries(CATEGORIES).forEach(([key, label]) => {
+            const header = document.createElement('div');
+            header.className = 'tab-header';
+            header.innerHTML = `<span>${label}</span><span>[+]</span>`;
+            header.onclick = () => {
+                const content = header.nextElementSibling;
+                content.classList.toggle('open');
+                header.querySelector('span:last-child').innerText = content.classList.contains('open') ? '[-]' : '[+]';
+            };
+
+            const content = document.createElement('div');
+            content.className = 'tab-content';
+            
+            MATERIALS.filter(m => m.cat === key).forEach(mat => {
+                const item = document.createElement('div');
+                item.className = 'inv-item';
+                item.innerHTML = `<span>${mat.name}</span><input type="number" value="${inventory[mat.id] || 0}" onchange="updateStock('${mat.id}', this.value)">`;
+                content.appendChild(item);
+            });
+
+            container.appendChild(header);
+            container.appendChild(content);
         });
     }
 
@@ -98,10 +121,48 @@
         updateDisplay();
     }
 
+    function updateDisplay() {
+        const grid = document.getElementById('contract-grid');
+        const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
+        grid.innerHTML = '';
+        let readyCount = 0;
+
+        CONTRACTS.sort((a,b) => (tracked.includes(b.id) - tracked.includes(a.id)) || a.name.localeCompare(b.name))
+        .forEach(c => {
+            const isDone = completed.includes(c.id);
+            const isPinned = tracked.includes(c.id);
+            if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
+
+            let canCraft = true;
+            const ingreds = c.ingredients.map(ing => {
+                const owned = inventory[ing.id] || 0;
+                if (owned < ing.qty) canCraft = false;
+                const mat = MATERIALS.find(m => m.id === ing.id);
+                return `<li class="${owned >= ing.qty ? 'status-ready' : 'status-missing'}">${owned}/${ing.qty} ${mat ? mat.name : ing.id}</li>`;
+            }).join('');
+
+            if (canCraft && !isDone) readyCount++;
+            if (filterMode === 'all' || (filterMode === 'craftable' && canCraft && !isDone) || (filterMode === 'tracked' && isPinned)) {
+                const card = document.createElement('div');
+                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isPinned ? 'pinned' : ''}`;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span class="card-cat">${c.cat}</span>
+                        <button class="btn" style="border:none; color:${isPinned ? 'var(--t-orange)' : '#444'}" onclick="toggleTrack('${c.id}')">${isPinned ? '★' : '☆'}</button>
+                    </div>
+                    <b>${c.name}</b><br><small class="reward-text">${c.reward}</small>
+                    <ul class="ingred-list">${ingreds}</ul>
+                    <button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN ]' : '[ INCOMPLETE ]'}</button>
+                `;
+                grid.appendChild(card);
+            }
+        });
+        document.getElementById('stats-header').innerText = `MANIFEST :: ${readyCount} READY`;
+    }
+
     function toggleTrack(id) {
         const idx = tracked.indexOf(id);
-        if(idx > -1) tracked.splice(idx, 1);
-        else tracked.push(id);
+        if(idx > -1) tracked.splice(idx, 1); else tracked.push(id);
         localStorage.setItem('wikelo-tracked', JSON.stringify(tracked));
         updateDisplay();
     }
@@ -113,75 +174,16 @@
         updateDisplay();
     }
 
-    function updateDisplay() {
-        const grid = document.getElementById('contract-grid');
-        const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
-        grid.innerHTML = '';
-        let readyCount = 0;
-
-        const sorted = [...CONTRACTS].sort((a, b) => {
-            const aT = tracked.includes(a.id) ? 1 : 0;
-            const bT = tracked.includes(b.id) ? 1 : 0;
-            if(aT !== bT) return bT - aT;
-            return a.name.localeCompare(b.name);
-        });
-
-        sorted.forEach(c => {
-            const isDone = completed.includes(c.id);
-            const isPinned = tracked.includes(c.id);
-            const matchesSearch = c.name.toLowerCase().includes(searchTerm) || c.reward.toLowerCase().includes(searchTerm);
-            if(!matchesSearch) return;
-
-            let canCraft = true;
-            let ingreds = c.ingredients.map(ing => {
-                const owned = inventory[ing.id] || 0;
-                if(owned < ing.qty) canCraft = false;
-                const matObj = MATERIALS.find(m => m.id === ing.id);
-                return `<li class="${owned >= ing.qty ? 'status-ready' : 'status-missing'}">${owned}/${ing.qty} ${matObj ? matObj.name : ing.id}</li>`;
-            }).join('');
-
-            if(canCraft && !isDone) readyCount++;
-
-            // FIX: "all" filter now correctly shows every recipe in JSON
-            const show = (filterMode === 'all') || (filterMode === 'craftable' && canCraft && !isDone) || (filterMode === 'tracked' && isPinned);
-
-            if(show) {
-                const card = document.createElement('div');
-                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isDone ? 'completed' : ''} ${isPinned ? 'pinned' : ''}`;
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="card-cat">${c.cat}</span>
-                        <button class="btn" style="border:none; color:${isPinned ? 'var(--t-orange)' : '#444'}" onclick="toggleTrack('${c.id}')">${isPinned ? '★ PINNED' : '☆ PIN'}</button>
-                    </div>
-                    <div style="font-weight:bold;">${c.name}</div>
-                    <span class="reward-text">REWARD: ${c.reward}</span>
-                    <ul class="ingred-list">${ingreds}</ul>
-                    ${isDone ? `<button class="btn" onclick="undo('${c.id}')">[ COMPLETED: UNDO? ]</button>` : 
-                    `<button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN_CONTRACT ]' : '[ INSUFFICIENT_STOCK ]'}</button>`}`;
-                grid.appendChild(card);
-            }
-        });
-        document.getElementById('stats-header').innerText = `MANIFEST :: ${readyCount} READY`;
-    }
-
     function execute(id) {
         const c = CONTRACTS.find(x => x.id === id);
-        if(!confirm(`HAND IN FOR: ${c.name}?`)) return;
         c.ingredients.forEach(ing => inventory[ing.id] -= ing.qty);
         completed.push(id);
         localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
         localStorage.setItem('wikelo-completed', JSON.stringify(completed));
-        renderInventory(); updateDisplay();
-    }
-    
-    function undo(id) {
-        completed = completed.filter(x => x !== id);
-        localStorage.setItem('wikelo-completed', JSON.stringify(completed));
-        updateDisplay();
+        renderInventoryTabs(); updateDisplay();
     }
 
-    function resetAll() { if(confirm("WIPE ALL PROGRESS?")) { localStorage.clear(); location.reload(); } }
-
+    function resetAll() { if(confirm("WIPE PROGRESS?")) { localStorage.clear(); location.reload(); } }
     window.onload = loadSystemData;
 </script>
 </body>
