@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v2.5.0</title>
+    <title>WIKELO::LOGISTICS_SYNC v2.6.0</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -13,7 +13,7 @@
             --success: #00FF00;
             --error: #FF0000;
             --text-main: #FFFFFF;
-            --text-dim: #777;
+            --text-dim: #BBBBBB; /* Brightened from previous grey */
         }
         
         * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--t-orange) #000; } 
@@ -59,22 +59,21 @@
         }
 
         /* --- TABS & INPUTS --- */
-        .tab-header { border: 1px solid var(--border); color: var(--t-orange); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; text-transform: uppercase; background: #000; font-weight: bold; letter-spacing: 1px; }
-        .tab-content { display: none; padding: 5px; border: 1px solid var(--border); border-top: none; background: #050505; }
+        .tab-header { border: 2px solid var(--border); color: var(--t-orange); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; text-transform: uppercase; background: #000; font-weight: bold; letter-spacing: 1px; }
+        .tab-content { display: none; padding: 5px; border: 2px solid var(--border); border-top: none; background: #050505; }
         .tab-content.open { display: block; }
 
-        .input-row { display: grid; grid-template-columns: 1fr 50px 80px 45px; gap: 8px; align-items: center; padding: 12px 6px; border-bottom: 1px solid #222; }
-        .input-row span { font-size: 11px; color: #fff; font-weight: bold; }
-        .input-row input { background: #000; border: 1px solid #444; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
+        .input-row { display: grid; grid-template-columns: 1fr 50px 80px 45px; gap: 8px; align-items: center; padding: 12px 6px; border-bottom: 1px solid #333; }
+        .input-row span { font-size: 12px; color: #fff; font-weight: bold; }
+        .input-row input { background: #000; border: 1px solid #666; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
         .input-row input:focus { border-color: var(--t-orange); }
-        .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; transition: 0.1s; }
-        .add-btn:hover { background: #fff; }
+        .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; }
 
         /* --- MANIFEST LIST --- */
-        .manifest-entry { background: #0a0a0a; border: 1px solid #333; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
-        .m-info b { color: var(--t-orange); font-size: 12px; display: block; }
-        .m-info span { font-size: 10px; color: #666; font-style: italic; }
-        .del-mini { color: var(--error); border: 1px solid var(--error); background: transparent; font-size: 10px; cursor: pointer; padding: 6px 10px; }
+        .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+        .m-info b { color: var(--t-orange); font-size: 13px; display: block; }
+        .m-info span { font-size: 11px; color: #FFF; font-style: italic; }
+        .del-mini { color: var(--error); border: 2px solid var(--error); background: transparent; font-size: 11px; cursor: pointer; padding: 6px 10px; font-weight: bold; }
         .del-mini:hover { background: var(--error); color: #000; }
 
         /* --- MAIN CONTENT HEADER --- */
@@ -89,29 +88,34 @@
         }
 
         .search-wrap { display: flex; align-items: center; gap: 10px; }
-        .search-input { background: #000; border: 1px solid #444; color: #fff; padding: 8px; font-size: 11px; width: 180px; outline: none; }
+        .search-input { background: #000; border: 2px solid #444; color: #fff; padding: 10px; font-size: 12px; width: 220px; outline: none; }
         .search-input:focus { border-color: var(--t-orange); }
 
-        .filter-group { display: flex; gap: 10px; }
+        /* --- PIN STAR --- */
+        .pin-btn { background: transparent; border: none; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .pin-btn svg { width: 22px; height: 22px; fill: none; stroke: var(--t-orange); stroke-width: 2.5; transition: all 0.2s; }
+        .pin-btn.active svg { fill: var(--t-orange); }
 
         /* --- GRID & CARDS --- */
         .scroll-area { flex: 1; overflow-y: auto; padding: 30px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 30px; }
 
         .card { background: var(--card); border: 2px solid var(--border); padding: 25px; position: relative; }
-        .card.craftable { border-top: 8px solid var(--success); }
-        .card:hover { border-color: #fff; }
+        .card.craftable { border-top: 10px solid var(--success); }
 
-        .reward-label { color: #a855f7; font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 4px 0; display: block; letter-spacing: 1px; }
+        .reward-label { color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 6px 0; display: block; letter-spacing: 1.5px; }
         
-        .ingred-list { font-size: 13px; list-style: none; padding: 0; margin: 15px 0; }
-        .ingred-list > li { margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 12px; }
+        .ingred-list { font-size: 14px; list-style: none; padding: 0; margin: 15px 0; }
+        .ingred-list > li { margin-bottom: 22px; border-bottom: 1px solid #333; padding-bottom: 14px; }
 
-        .authority-box { font-size: 10px; margin-top: 8px; background: rgba(255,140,0,0.08); padding: 8px; border-left: 2px solid var(--t-orange); }
-        .auth-line { display: flex; justify-content: space-between; margin-bottom: 4px; color: #bbb; }
+        .authority-box { font-size: 11px; margin-top: 10px; background: rgba(255,140,0,0.12); padding: 10px; border-left: 3px solid var(--t-orange); color: #FFF; }
+        .auth-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
         .auth-line b { color: var(--t-orange); }
 
-        .btn { background: transparent; border: 1px solid var(--border); color: var(--t-orange); padding: 10px 20px; cursor: pointer; font-size: 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .where-loc { font-size: 10px; color: #DDD; margin-top: 4px; display: block; line-height: 1.4; }
+        .where-tag { color: var(--t-orange); font-weight: bold; margin-right: 5px; }
+
+        .btn { background: transparent; border: 2px solid var(--border); color: var(--t-orange); padding: 12px 24px; cursor: pointer; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         .btn:hover { background: var(--t-orange); color: #000; }
         .btn.active { background: var(--t-orange); color: #000; }
 
@@ -126,19 +130,19 @@
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 style="color:var(--t-orange); font-size:14px; margin:0 0 12px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V2.5 ]</h2>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="squad-code" style="background:#000; border:1px solid #444; color:#fff; padding:10px; font-size:12px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
-            <input type="text" id="user-handle" style="background:#000; border:1px solid #444; color:#fff; padding:10px; font-size:12px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
+        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 15px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V2.6 ]</h2>
+        <div style="display:flex; gap:12px;">
+            <input type="text" id="squad-code" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
+            <input type="text" id="user-handle" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
         </div>
     </div>
 
     <div class="sidebar-split">
         <div class="sidebar-scroll-top" id="inventory-tabs"></div>
         <div class="manifest-zone" id="manifest-list">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #222; padding-bottom:10px;">
-                <h3 style="font-size:12px; color:var(--t-orange); margin:0; letter-spacing: 1px;">[ ACTIVE_MANIFEST ]</h3>
-                <button onclick="resetAll()" style="background:transparent; border:1px solid var(--error); color:var(--error); font-size:9px; padding:4px 8px; cursor:pointer;">PURGE_MANIFEST</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #333; padding-bottom:10px;">
+                <h3 style="font-size:13px; color:var(--t-orange); margin:0; letter-spacing: 2px;">[ ACTIVE_MANIFEST ]</h3>
+                <button onclick="resetAll()" style="background:transparent; border:2px solid var(--error); color:var(--error); font-size:10px; padding:6px 12px; cursor:pointer; font-weight:bold;">PURGE_ALL</button>
             </div>
         </div>
     </div>
@@ -146,11 +150,11 @@
 
 <div class="main-content">
     <div class="header-controls">
-        <h1 id="stats-header" style="margin:0; font-size: 18px; letter-spacing: 2px; color: #fff;">MANIFEST // <span style="color:var(--t-orange);">0 READY</span></h1>
+        <h1 id="stats-header" style="margin:0; font-size: 20px; letter-spacing: 2px; color: #fff;">MANIFEST // <span style="color:var(--t-orange);">0 READY</span></h1>
         
         <div class="search-wrap">
-            <input type="text" id="manifest-search" class="search-input" placeholder="SEARCH..." oninput="updateDisplay()">
-            <div class="filter-group">
+            <input type="text" id="manifest-search" class="search-input" placeholder="SEARCH CONTRACTS..." oninput="updateDisplay()">
+            <div class="filter-group" style="display:flex; gap:10px;">
                 <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
                 <button class="btn active" id="f-craft" onclick="setFilter('craftable')">READY</button>
                 <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
@@ -290,7 +294,10 @@
                     `</div>` : '';
 
                 return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}">
-                    <div style="display:flex; justify-content:space-between;"><b>${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b><span style="font-size:9px; color:#555;">WHERE: ${locStr}</span></div>
+                    <div style="display:flex; justify-content:space-between; align-items: baseline;">
+                        <b style="font-size:15px;">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b>
+                        <span class="where-loc" style="text-align:right;"><span class="where-tag">WHERE:</span>${locStr}</span>
+                    </div>
                     ${authorityHTML}
                 </li>`;
             }).join('');
@@ -301,11 +308,13 @@
                 const card = document.createElement('div');
                 card.className = `card ${canCraft ? 'craftable' : ''}`;
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
-                        <span style="font-size:9px; color:#777; text-transform:uppercase;">${c.cat}</span>
-                        <button class="btn" style="padding:2px 8px; font-size:12px; border:none; color:${isPinned ? 'var(--t-orange)' : '#333'}" onclick="toggleTrack('${c.id}')">★</button>
+                    <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:12px;">
+                        <span style="font-size:10px; color:#AAA; font-weight:bold; text-transform:uppercase;">${c.cat}</span>
+                        <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')">
+                            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        </button>
                     </div>
-                    <b>${c.name}</b>
+                    <b style="font-size:18px;">${c.name}</b>
                     <small class="reward-label">${c.reward}</small>
                     <ul class="ingred-list">${ingreds}</ul>
                     <button class="btn" style="width:100%" ${!canCraft ? 'disabled' : ''}>${canCraft ? 'INITIALIZE_HAND_IN' : 'RESOURCES_INSUFFICIENT'}</button>`;
