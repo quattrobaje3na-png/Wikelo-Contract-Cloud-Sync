@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIKELO::LOGISTICS_SYNC v1.8</title>
+    <title>WIKELO::LOGISTICS_SYNC v1.8.1</title>
     <style>
         :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* --- SIDEBAR --- */
         .sidebar { width: 420px; border-right: 2px solid var(--t-orange); padding: 20px; overflow-y: auto; background: #050505; }
         .sync-panel { background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px; }
         .sync-status { display: flex; align-items: center; font-size: 10px; margin-top: 10px; }
@@ -25,11 +24,10 @@
         .inv-item input.loc-input { border-color: #333; color: #888; font-size: 9px; text-transform: uppercase; }
         .inv-item input.loc-input:focus { border-color: var(--t-orange); color: var(--t-orange); }
 
-        /* --- MAIN CONTENT --- */
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 15px; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; border-radius: 2px; }
         .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
         .card.pinned { border-left: 4px solid var(--t-orange); }
         .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; font-weight: bold; }
@@ -74,8 +72,38 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywgKsYfx5yZP2cgLDlfsKia5hEcbS5LrJ6v4SQtdzRF4CyBGPYtfz_gnTiNbO3gaCxUA/exec";
-    let MATERIALS = [];
-    let CONTRACTS = [];
+    
+    // BAKED DATABASE
+    const DATABASE = {
+        "materials": [
+            {"id":"wikelo-favor", "name":"Wikelo Favor", "cat":"currency"},
+            {"id":"mg-scrip", "name":"MG Scrip", "cat":"currency"},
+            {"id":"polaris-bit", "name":"Polaris Bit", "cat":"currency"},
+            {"id":"carinite-pure", "name":"Carinite (Pure)", "cat":"ores"},
+            {"id":"carinite", "name":"Carinite", "cat":"ores"},
+            {"id":"jaclium", "name":"Jaclium (Ore)", "cat":"ores"},
+            {"id":"saldynium", "name":"Saldynium (Ore)", "cat":"ores"},
+            {"id":"valakkar-pearl-aaa", "name":"Pearl (AAA)", "cat":"creature"},
+            {"id":"valakkar-fang-apex", "name":"Fang (Apex)", "cat":"creature"},
+            {"id":"asd-secure-drive", "name":"ASD Secure Drive", "cat":"tech"},
+            {"id":"comp-board", "name":"DCHS-05 Comp-Board", "cat":"tech"},
+            {"id":"nn-13-cannon", "name":"NN-13 Cannon", "cat":"tech"},
+            {"id":"argo-atls", "name":"Argo ATLS", "cat":"gear"},
+            {"id":"ace-helmet", "name":"Ace Helmet", "cat":"gear"},
+            {"id":"antium-core", "name":"Antium Core", "cat":"gear"},
+            {"id":"antium-helmet", "name":"Antium Helmet", "cat":"gear"},
+            {"id":"antium-legs", "name":"Antium Legs", "cat":"gear"},
+            {"id":"antium-arms", "name":"Antium Arms", "cat":"gear"}
+        ],
+        "contracts": [
+            {"id":"ana-endro", "cat":"armor", "name":"Armor with horn and string", "reward":"Ana Armor Endro Set", "ingredients":[{"id":"carinite-pure", "qty":1}, {"id":"antium-core", "qty":1}, {"id":"antium-helmet", "qty":1}, {"id":"antium-legs", "qty":1}, {"id":"antium-arms", "qty":1}]},
+            {"id":"atls-ikti", "cat":"vehicle", "name":"Make ATLS shoot", "reward":"ATLS IKTI", "ingredients":[{"id":"argo-atls", "qty":1}, {"id":"wikelo-favor", "qty":2}, {"id":"valakkar-fang-apex", "qty":5}, {"id":"nn-13-cannon", "qty":2}]},
+            {"id":"polaris-special", "cat":"ship", "name":"Now make Polaris.", "reward":"RSI Polaris Wikelo Special", "ingredients":[{"id":"wikelo-favor", "qty":50}, {"id":"polaris-bit", "qty":15}, {"id":"asd-secure-drive", "qty":15}, {"id":"comp-board", "qty":10}, {"id":"carinite-pure", "qty":15}]}
+        ]
+    };
+
+    let MATERIALS = DATABASE.materials;
+    let CONTRACTS = DATABASE.contracts;
     let inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
     let completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
     let tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
@@ -91,20 +119,12 @@
         "gear": "Gear & Vehicles"
     };
 
-    async function loadSystemData() {
-        const response = await fetch('wikelo-data.json');
-        const data = await response.json();
-        MATERIALS = data.materials;
-        CONTRACTS = data.contracts;
-        
+    function init() {
         document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
         document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
-        
         renderInventoryTabs();
         updateDisplay();
-        
         setInterval(syncWithCloud, 15000);
-        syncWithCloud();
     }
 
     function renderInventoryTabs() {
@@ -192,14 +212,15 @@
     function setFilter(m) { filterMode = m; updateDisplay(); }
     function execute(id) { 
         const c = CONTRACTS.find(x => x.id === id); 
-        c.ingredients.forEach(ing => inventory[ing.id].qty -= ing.qty); 
+        c.ingredients.forEach(ing => { if(inventory[ing.id]) inventory[ing.id].qty -= ing.qty; }); 
         completed.push(id); 
         localStorage.setItem('wikelo-inventory', JSON.stringify(inventory)); 
         localStorage.setItem('wikelo-completed', JSON.stringify(completed)); 
         renderInventoryTabs(); updateDisplay(); syncWithCloud(); 
     }
     function resetAll() { if(confirm("WIPE DATA?")) { localStorage.clear(); location.reload(); } }
-    window.onload = loadSystemData;
+    
+    window.onload = init;
 </script>
 </body>
 </html>
