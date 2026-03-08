@@ -3,15 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v1.9.8</title>
+    <title>WIKELO::LOGISTICS_SYNC v1.9.9</title>
     <style>
-        :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
+        :root { 
+            --t-orange: #e67e22; /* Muted Amber */
+            --t-orange-dim: rgba(230, 126, 34, 0.2);
+            --bg: #0f1113; /* Deep Charcoal */
+            --sidebar-bg: #16191c;
+            --card: #1c1f23;
+            --border: #2d3238;
+            --success: #27ae60;
+            --error: #c0392b;
+            --text-main: #d1d5db;
+            --text-dim: #9ca3af;
+        }
+        
         * { box-sizing: border-box; } 
 
         body { 
             background: var(--bg); 
-            color: #fff; 
-            font-family: 'Courier New', monospace; 
+            color: var(--text-main); 
+            font-family: 'Segoe UI', 'Courier New', monospace; 
             margin: 0; 
             display: flex; 
             height: 100vh; 
@@ -20,19 +32,20 @@
 
         /* --- SIDEBAR --- */
         .sidebar { 
-            width: 420px; 
-            border-right: 2px solid var(--t-orange); 
+            width: 380px; 
+            border-right: 1px solid var(--border); 
             padding: 20px; 
             overflow-y: auto; 
-            background: #050505; 
+            background: var(--sidebar-bg); 
             flex-shrink: 0; 
         }
         
         .sync-panel { 
-            background: #111; 
+            background: rgba(0,0,0,0.2); 
             padding: 15px; 
-            border: 1px solid var(--t-orange); 
-            margin-bottom: 20px;
+            border: 1px solid var(--border); 
+            border-left: 3px solid var(--t-orange);
+            margin-bottom: 25px;
             width: 100%;
         }
 
@@ -41,130 +54,121 @@
             display: block;
             margin-bottom: 10px;
             text-align: left;
-            padding: 12px;
-            background: #000;
-            border: 1px solid var(--t-orange);
-            color: var(--t-orange);
+            padding: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
             font-family: monospace;
             font-size: 11px;
+            outline: none;
         }
+        .sync-panel input.btn-input:focus { border-color: var(--t-orange); }
 
-        .sync-status { display: flex; align-items: center; font-size: 10px; margin-top: 10px; }
-        .lamp { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #333; transition: 0.3s; }
-        .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .sync-status { display: flex; align-items: center; font-size: 10px; color: var(--text-dim); }
+        .lamp { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: #333; }
+        .lamp.active { background: var(--success); box-shadow: 0 0 5px var(--success); }
         
-        /* --- MAIN CONTENT & STICKY HEADER --- */
-        .main-content { 
-            flex: 1; 
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; 
-            position: relative; 
-            background: var(--bg);
-        }
+        /* --- MAIN CONTENT --- */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
 
         .header-controls { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 20px;
-            border-bottom: 2px solid var(--t-orange); 
-            background: var(--bg); 
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border); 
+            background: var(--sidebar-bg); 
             z-index: 100; 
             width: 100%;
-            margin: 0; 
-            flex-shrink: 0;
         }
         
-        .scroll-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
+        .scroll-area { flex: 1; overflow-y: auto; padding: 25px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
 
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); 
-            gap: 15px; 
-        }
-
-        /* --- UI COMPONENTS --- */
+        /* --- PIN STAR (SVG) --- */
         .pin-btn {
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 28px;
-            line-height: 1;
+            width: 24px;
+            height: 24px;
             padding: 0;
-            transition: transform 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .pin-btn.active { color: var(--t-orange); text-shadow: 0 0 10px var(--t-orange); }
-        .pin-btn.inactive { color: #333; }
+        .pin-btn svg { width: 20px; height: 20px; fill: none; stroke: var(--t-orange); stroke-width: 2; transition: all 0.2s; }
+        .pin-btn.active svg { fill: var(--t-orange); }
 
-        .wiki-loc {
-            font-size: 9px;
-            color: #777;
-            margin-top: 3px;
-            display: block;
-            border-left: 1px solid #444;
-            padding-left: 5px;
-            margin-bottom: 8px;
-            line-height: 1.2;
+        /* --- CARDS --- */
+        .card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            padding: 18px; 
+            border-radius: 4px;
+            transition: transform 0.2s, border-color 0.2s; 
         }
-
-        /* --- MOBILE RESPONSIVE --- */
-        @media (max-width: 900px) {
-            body { flex-direction: column; overflow-y: auto; height: auto; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid var(--t-orange); height: auto; }
-            .main-content { height: auto; overflow: visible; }
-            .header-controls { position: sticky; top: 0; padding: 15px; flex-direction: column; gap: 10px; align-items: flex-start; margin:0; }
-            .grid { grid-template-columns: 1fr; }
-            .scroll-area { overflow: visible; padding: 10px; }
-            .inv-item { grid-template-columns: 1fr 60px 80px; }
-        }
-
-        .tab-header { background: #111; border: 1px solid var(--border); color: var(--t-orange); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; text-transform: uppercase; font-weight: bold; width: 100%; }
-        .tab-content { display: none; padding: 5px; border: 1px solid #222; background: #080808; border-top: none; }
-        .tab-content.open { display: block; }
+        .card:hover { border-color: #444; }
+        .card.craftable { border-top: 3px solid var(--success); }
+        .card.pinned { border-left: 3px solid var(--t-orange); }
         
-        .inv-item { display: grid; grid-template-columns: 1fr 60px 100px; gap: 8px; align-items: center; padding: 10px 8px; border-bottom: 1px solid #111; }
-        .inv-item span { font-size: 10px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .inv-item input { background: #000; border: 1px solid var(--t-orange); color: var(--t-orange); text-align: center; font-size: 12px; outline: none; padding: 5px 0; width: 100%; }
-
-        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; position: relative; }
-        .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
-        .card.pinned { border-left: 4px solid var(--t-orange); }
-        
-        .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; font-weight: bold; }
-        .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
+        .reward-text { color: #9b59b6; font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 4px 0; display: block; }
+        .ingred-list { font-size: 12px; list-style: none; padding: 0; margin: 12px 0; color: var(--text-dim); }
+        .ingred-list li { margin-bottom: 8px; }
         .status-ready { color: var(--success); }
         .status-missing { color: var(--error); }
-        
-        .btn { background: transparent; border: 1px solid var(--t-orange); color: var(--t-orange); padding: 10px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold; font-family: monospace; min-height: 40px; }
-        .btn:hover:not(:disabled) { background: rgba(255,140,0,0.1); }
-        .active-filter { background: var(--t-orange) !important; color: #000 !important; }
+        .wiki-loc { font-size: 10px; color: #555; display: block; margin-top: 2px; font-style: italic; }
+
+        /* --- BUTTONS --- */
+        .btn { 
+            background: transparent; 
+            border: 1px solid var(--border); 
+            color: var(--text-main); 
+            padding: 8px 15px; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-size: 10px; 
+            font-weight: bold; 
+            transition: 0.2s;
+        }
+        .btn:hover { background: var(--t-orange); color: #000; border-color: var(--t-orange); }
+        .active-filter { background: var(--t-orange-dim); color: var(--t-orange); border-color: var(--t-orange); }
+
+        /* --- MOBILE --- */
+        @media (max-width: 900px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); height: auto; }
+            .header-controls { flex-direction: column; gap: 15px; position: sticky; top: 0; }
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .tab-header { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 10px; margin-top: 4px; text-transform: uppercase; }
+        .tab-header:hover { color: var(--t-orange); }
+        .tab-content { display: none; padding: 5px; border: 1px solid var(--border); border-top: none; background: rgba(0,0,0,0.1); }
+        .tab-content.open { display: block; }
+        .inv-item { display: grid; grid-template-columns: 1fr 50px 80px; gap: 5px; align-items: center; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.02); }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <div class="sync-panel">
-        <h2 style="color:var(--t-orange); font-size:12px; margin:0 0 10px 0;">[ CLOUD_SYNC_LOGISTICS ]</h2>
+        <h2 style="color:var(--t-orange); font-size:11px; margin:0 0 10px 0; letter-spacing: 1px;">[ LOGISTICS_SYNC ]</h2>
         <input type="text" id="squad-code" class="btn-input" placeholder="SQUAD_CODE..." onchange="saveConfig()">
         <input type="text" id="user-handle" class="btn-input" placeholder="HANDLE..." onchange="saveConfig()">
         <div class="sync-status">
             <div id="sync-lamp" class="lamp"></div>
-            <span id="sync-text">STATUS: CONNECTING...</span>
+            <span id="sync-text">LINK_ESTABLISHED</span>
         </div>
     </div>
     <div id="inventory-tabs"></div>
-    <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_LOCAL_DATA ]</button>
+    <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">PURGE_LOCAL_CACHE</button>
 </div>
 
 <div class="main-content">
     <div class="header-controls">
-        <h1 id="stats-header" style="margin:0; font-size: 16px;">WIKELO::MANIFEST</h1>
-        <div style="display:flex; gap:5px; align-items:center; flex-wrap: wrap;">
+        <h1 id="stats-header" style="margin:0; font-size: 15px; letter-spacing: 1px; color: var(--text-dim);">MANIFEST // <span style="color:var(--t-orange);">READY</span></h1>
+        <div style="display:flex; gap:8px;">
             <input type="text" id="manifest-search" class="btn" style="width:140px; text-align:left;" placeholder="SEARCH..." oninput="updateDisplay()">
             <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
             <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
@@ -199,20 +203,13 @@
 
     async function loadSystemData() {
         try {
-            // Fetch Recipe Data
             const dataResponse = await fetch('wikelo-data.json');
-            if (!dataResponse.ok) throw new Error("WIKELO_DATA_MISSING");
             const data = await dataResponse.json();
-            
-            // Fetch Location Data
             const locResponse = await fetch('locations.json');
-            if (locResponse.ok) {
-                LOCATIONS = await locResponse.json();
-            }
+            if (locResponse.ok) LOCATIONS = await locResponse.json();
 
             MATERIALS = data.materials || [];
             CONTRACTS = data.contracts || [];
-
             inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
             completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
             tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
@@ -222,14 +219,9 @@
             
             renderInventoryTabs();
             updateDisplay();
-            
-            document.getElementById('sync-text').innerText = "STATUS: ONLINE";
             setInterval(syncWithCloud, 15000);
             syncWithCloud();
-        } catch (e) {
-            document.getElementById('sync-text').innerText = "STATUS: LOAD_ERROR";
-            console.error(e);
-        }
+        } catch (e) { document.getElementById('sync-text').innerText = "DATA_LINK_FAILURE"; }
     }
 
     function renderInventoryTabs() {
@@ -240,11 +232,11 @@
             if (mats.length === 0) return;
             const header = document.createElement('div');
             header.className = 'tab-header';
-            header.innerHTML = `<span>${label}</span><span>[+]</span>`;
+            header.innerHTML = `<span>${label}</span><span>+</span>`;
             header.onclick = () => {
                 const content = header.nextElementSibling;
                 content.classList.toggle('open');
-                header.querySelector('span:last-child').innerText = content.classList.contains('open') ? '[-]' : '[+]';
+                header.querySelector('span:last-child').innerText = content.classList.contains('open') ? '-' : '+';
             };
             const content = document.createElement('div');
             content.className = 'tab-content';
@@ -252,7 +244,7 @@
                 const data = inventory[mat.id] || { qty: 0, loc: "" };
                 const item = document.createElement('div');
                 item.className = 'inv-item';
-                item.innerHTML = `<span>${mat.name}</span><input type="number" value="${data.qty}" onchange="updateStock('${mat.id}', 'qty', this.value)"><input type="text" style="color:#888; font-size:10px;" value="${data.loc || ''}" placeholder="LOC" onchange="updateStock('${mat.id}', 'loc', this.value)">`;
+                item.innerHTML = `<span style="font-size:10px;">${mat.name}</span><input type="number" value="${data.qty}" onchange="updateStock('${mat.id}', 'qty', this.value)"><input type="text" style="color:#666; font-size:9px;" value="${data.loc || ''}" placeholder="LOC" onchange="updateStock('${mat.id}', 'loc', this.value)">`;
                 content.appendChild(item);
             });
             container.appendChild(header);
@@ -273,10 +265,10 @@
         const squad = document.getElementById('squad-code').value;
         const handle = document.getElementById('user-handle').value;
         if (!squad || !handle) return;
-        const lamp = document.getElementById('sync-lamp');
         try {
             const payload = { action: "sync", squadCode: squad, handle: handle, inventory: JSON.stringify(inventory), completed: JSON.stringify(completed) };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+            const lamp = document.getElementById('sync-lamp');
             lamp.classList.add('active');
             setTimeout(() => lamp.classList.remove('active'), 1500);
         } catch (e) { }
@@ -287,26 +279,20 @@
         const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
         let readyCount = 0;
-        
         const sorted = [...CONTRACTS].sort((a,b) => (tracked.includes(b.id) - tracked.includes(a.id)) || a.name.localeCompare(b.name));
-
+        
         sorted.forEach(c => {
             const isDone = completed.includes(c.id);
             const isPinned = tracked.includes(c.id);
             if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
-
+            
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
                 const data = inventory[ing.id] || { qty: 0, loc: "" };
-                const qtyReq = ing.qty || 0;
-                if (data.qty < qtyReq) canCraft = false;
+                if (data.qty < ing.qty) canCraft = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                const wikiLoc = LOCATIONS[ing.id] || "Location Unknown";
-                return `
-                    <li class="${data.qty >= qtyReq ? 'status-ready' : 'status-missing'}">
-                        ${data.qty}/${qtyReq} ${mat ? mat.name : ing.id} ${data.loc ? '<span style="color:#666; font-size:9px;">['+data.loc+']</span>' : ''}
-                        <span class="wiki-loc">WIKI: ${wikiLoc}</span>
-                    </li>`;
+                const wikiLoc = LOCATIONS[ing.id] || "No Data";
+                return `<li class="${data.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${data.qty}/${ing.qty} ${mat ? mat.name : ing.id} <span class="wiki-loc">${wikiLoc}</span></li>`;
             }).join('');
 
             if (canCraft && !isDone) readyCount++;
@@ -314,21 +300,22 @@
                 const card = document.createElement('div');
                 card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isPinned ? 'pinned' : ''}`;
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items: flex-start;">
-                        <span style="font-size:9px; color:#555;">${c.cat}</span>
-                        <button class="pin-btn ${isPinned ? 'active' : 'inactive'}" onclick="toggleTrack('${c.id}')">★</button>
+                    <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
+                        <span style="font-size:9px; color:#555; text-transform:uppercase;">${c.cat}</span>
+                        <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')">
+                            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        </button>
                     </div>
-                    <b style="color:#fff; display:block; margin-top: -10px;">${c.name}</b>
-                    <small class="reward-text">REWARD: ${c.reward}</small>
+                    <b style="color:var(--text-main); font-size:14px;">${c.name}</b>
+                    <small class="reward-text">${c.reward}</small>
                     <ul class="ingred-list">${ingreds}</ul>
-                    <button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN ]' : '[ INCOMPLETE ]'}</button>`;
+                    <button class="btn" style="width:100%" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? 'INITIALIZE_HAND_IN' : 'RESOURCES_INSUFFICIENT'}</button>`;
                 grid.appendChild(card);
             }
         });
-        document.getElementById('stats-header').innerText = `MANIFEST :: ${readyCount} READY`;
+        document.getElementById('stats-header').innerHTML = `MANIFEST // <span style="color:var(--t-orange);">${readyCount} READY</span>`;
     }
 
-    function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
     function toggleTrack(id) { 
         const idx = tracked.indexOf(id); 
         if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); 
@@ -338,9 +325,7 @@
     function setFilter(m) { 
         filterMode = m; 
         document.querySelectorAll('.header-controls .btn').forEach(b => b.classList.remove('active-filter'));
-        if(m === 'all') document.getElementById('f-all').classList.add('active-filter');
-        if(m === 'craftable') document.getElementById('f-craft').classList.add('active-filter');
-        if(m === 'tracked') document.getElementById('f-track').classList.add('active-filter');
+        document.getElementById('f-' + (m === 'all' ? 'all' : m === 'craftable' ? 'craft' : 'track')).classList.add('active-filter');
         updateDisplay(); 
     }
     function execute(id) { 
@@ -351,7 +336,7 @@
         localStorage.setItem('wikelo-completed', JSON.stringify(completed)); 
         renderInventoryTabs(); updateDisplay(); syncWithCloud(); 
     }
-    function resetAll() { if(confirm("WIPE DATA?")) { localStorage.clear(); location.reload(); } }
+    function resetAll() { if(confirm("CONFIRM_PURGE?")) { localStorage.clear(); location.reload(); } }
     window.onload = loadSystemData;
 </script>
 </body>
