@@ -1,0 +1,876 @@
+{
+  "materials": [
+    {"id": "wikelo-favor", "name": "Wikelo Favor", "cat": "currency"},
+    {"id": "mg-scrip", "name": "MG Scrip", "cat": "currency"},
+    {"id": "polaris-bit", "name": "Polaris Bit", "cat": "currency"},
+    {"id": "council-scrip", "name": "Council Scrip", "cat": "currency"},
+    {"id": "quantainium", "name": "Quantainium", "cat": "ores"},
+    {"id": "carinite", "name": "Carinite", "cat": "ores"},
+    {"id": "carinite-pure", "name": "Carinite (Pure)", "cat": "ores"},
+    {"id": "jaclium", "name": "Jaclium (Ore)", "cat": "ores"},
+    {"id": "saldynium", "name": "Saldynium (Ore)", "cat": "ores"},
+    {"id": "bluemoon-fungus", "name": "Bluemoon Fungus", "cat": "ores"},
+    {"id": "valakkar-pearl-aaa", "name": "Irradiated Valakkar Pearl (AAA)", "cat": "creature"},
+    {"id": "valakkar-pearl-aa", "name": "Irradiated Valakkar Pearl (AA)", "cat": "creature"},
+    {"id": "valakkar-fang-apex", "name": "Irradiated Valakkar Fang (Apex)", "cat": "creature"},
+    {"id": "valakkar-fang-adult", "name": "Irradiated Valakkar Fang (Adult)", "cat": "creature"},
+    {"id": "valakkar-fang-juvenile", "name": "Irradiated Valakkar Fang (Juvenile)", "cat": "creature"},
+    {"id": "tundra-kopion-horn", "name": "Tundra Kopion Horn", "cat": "creature"},
+    {"id": "irradiated-kopion-horn", "name": "Irradiated Kopion Horn", "cat": "creature"},
+    {"id": "yormandi-eye", "name": "Yormandi Eye", "cat": "creature"},
+    {"id": "yormandi-tongue", "name": "Yormandi Tongue", "cat": "creature"},
+    {"id": "uee-medal", "name": "UEE 6th Platoon Medal (Pristine)", "cat": "medals"},
+    {"id": "tevarin-marker", "name": "Tevarin War Service Marker (Pristine)", "cat": "medals"},
+    {"id": "gov-medal", "name": "Government Cartography Agency Medal (Pristine)", "cat": "medals"},
+    {"id": "artefact-fragment", "name": "Large Artefact Fragment (Pristine)", "cat": "medals"},
+    {"id": "asd-secure-drive", "name": "ASD Secure Drive", "cat": "tech"},
+    {"id": "comp-board", "name": "DCHS-05 Orbital Positioning Comp-Board", "cat": "tech"},
+    {"id": "nn-13-cannon", "name": "NN-13 Cannon", "cat": "tech"},
+    {"id": "rcmbnt-rgl-1", "name": "RCMBNT-RGL-1", "cat": "tech"},
+    {"id": "rcmbnt-rgl-2", "name": "RCMBNT-RGL-2", "cat": "tech"},
+    {"id": "rcmbnt-rgl-3", "name": "RCMBNT-RGL-3", "cat": "tech"},
+    {"id": "rcmbnt-pwl-1", "name": "RCMBNT-PWL-1", "cat": "tech"},
+    {"id": "rcmbnt-pwl-2", "name": "RCMBNT-PWL-2", "cat": "tech"},
+    {"id": "rcmbnt-pwl-3", "name": "RCMBNT-PWL-3", "cat": "tech"},
+    {"id": "rcmbnt-xtl-1", "name": "RCMBNT-XTL-1", "cat": "tech"},
+    {"id": "rcmbnt-xtl-2", "name": "RCMBNT-XTL-2", "cat": "tech"},
+    {"id": "rcmbnt-xtl-3", "name": "RCMBNT-XTL-3", "cat": "tech"},
+    {"id": "argo-atls", "name": "Argo ATLS", "cat": "gear"},
+    {"id": "argo-atls-geo", "name": "Argo ATLS Geo", "cat": "gear"},
+    {"id": "argo-atls-ikti", "name": "Argo ATLS Ikti", "cat": "gear"},
+    {"id": "ace-helmet", "name": "Ace Interceptor Helmet", "cat": "gear"},
+    {"id": "vanduul-plating", "name": "Vanduul Plating", "cat": "gear"},
+    {"id": "vanduul-metal", "name": "Vanduul Metal", "cat": "gear"},
+    {"id": "antium-core", "name": "Antium Core", "cat": "gear"},
+    {"id": "antium-helmet", "name": "Antium Helmet", "cat": "gear"},
+    {"id": "antium-legs", "name": "Antium Legs", "cat": "gear"},
+    {"id": "antium-arms", "name": "Antium Arms", "cat": "gear"},
+    {"id": "corbel-helmet", "name": "Corbel Mire Helmet", "cat": "gear"},
+    {"id": "corbel-core", "name": "Corbel Mire Core", "cat": "gear"},
+    {"id": "corbel-legs", "name": "Corbel Mire Legs", "cat": "gear"},
+    {"id": "corbel-arms", "name": "Corbel Mire Arms", "cat": "gear"},
+    {"id": "corbel-backpack", "name": "Corbel Mire Novikov Backpack", "cat": "gear"},
+    {"id": "geist-helmet", "name": "Geist ASD Helmet", "cat": "gear"},
+    {"id": "geist-core", "name": "Geist ASD Core", "cat": "gear"},
+    {"id": "geist-legs", "name": "Geist ASD Legs", "cat": "gear"},
+    {"id": "geist-arms", "name": "Geist ASD Arms", "cat": "gear"},
+    {"id": "geist-backpack", "name": "Geist ASD Backpack", "cat": "gear"},
+    {"id": "strata-helmet", "name": "Strata Helmet", "cat": "gear"},
+    {"id": "strata-core", "name": "Strata Core", "cat": "gear"},
+    {"id": "strata-arms", "name": "Strata Arms", "cat": "gear"},
+    {"id": "strata-legs", "name": "Strata Legs", "cat": "gear"},
+    {"id": "strata-backpack", "name": "Strata Backpack", "cat": "gear"},
+    {"id": "palatino-helmet", "name": "Palatino Helmet", "cat": "gear"},
+    {"id": "palatino-core", "name": "Palatino Core", "cat": "gear"},
+    {"id": "palatino-legs", "name": "Palatino Legs", "cat": "gear"},
+    {"id": "palatino-arms", "name": "Palatino Arms", "cat": "gear"},
+    {"id": "palatino-backpack", "name": "Palatino Backpack", "cat": "gear"},
+    {"id": "testudo-helmet", "name": "Testudo Turfwar Helmet", "cat": "gear"},
+    {"id": "testudo-core", "name": "Testudo Turfwar Core", "cat": "gear"},
+    {"id": "testudo-arms", "name": "Testudo Turfwar Arms", "cat": "gear"},
+    {"id": "testudo-legs", "name": "Testudo Turfwar Legs", "cat": "gear"},
+    {"id": "testudo-backpack", "name": "Testudo Turfwar Backpack", "cat": "gear"},
+    {"id": "parallax-rifle", "name": "Parallax Energy Assault Rifle", "cat": "gear"},
+    {"id": "prism-shotgun", "name": "Prism Laser Shotgun", "cat": "gear"},
+    {"id": "zenith-sniper", "name": "Zenith Sniper Rifle", "cat": "gear"},
+    {"id": "fresnel-lmg", "name": "Fresnel Energy LMG", "cat": "gear"},
+    {"id": "boomtube-launcher", "name": "Boomtube Rocket Launcher", "cat": "gear"},
+    {"id": "tripledown-pistol", "name": "Tripledown Pistol", "cat": "gear"}
+  ],
+  "contracts": [
+    {
+      "id": "ana-endro",
+      "cat": "armor",
+      "name": "Armor with horn and string",
+      "reward": "Ana Armor Endro Set",
+      "reputationReward": 25,
+      "ingredients": [
+        {"id": "carinite-pure", "qty": 1},
+        {"id": "antium-core", "qty": 1},
+        {"id": "antium-helmet", "qty": 1},
+        {"id": "antium-legs", "qty": 1},
+        {"id": "antium-arms", "qty": 1}
+      ]
+    },
+    {
+      "id": "bokto-armor",
+      "cat": "armor",
+      "name": "Make glowy armor",
+      "reward": "Bokto Armor Set",
+      "reputationReward": 25,
+      "ingredients": [
+        {"id": "valakkar-pearl-aaa", "qty": 1},
+        {"id": "antium-core", "qty": 1},
+        {"id": "antium-helmet", "qty": 1},
+        {"id": "antium-legs", "qty": 1},
+        {"id": "antium-arms", "qty": 1}
+      ]
+    },
+    {
+      "id": "geist-snow",
+      "cat": "armor",
+      "name": "Hide Snow Suit",
+      "reward": "Geist Snow Camo Set",
+      "reputationReward": 25,
+      "ingredients": [
+        {"id": "asd-secure-drive", "qty": 4},
+        {"id": "geist-helmet", "qty": 1},
+        {"id": "geist-core", "qty": 1},
+        {"id": "geist-legs", "qty": 1},
+        {"id": "geist-arms", "qty": 1},
+        {"id": "geist-backpack", "qty": 1}
+      ]
+    },
+    {
+      "id": "strata-heatwave",
+      "cat": "armor",
+      "name": "Do Lava Suit",
+      "reward": "Strata Heatwave Set",
+      "reputationReward": 25,
+      "ingredients": [
+        {"id": "carinite", "qty": 30},
+        {"id": "rcmbnt-pwl-1", "qty": 4},
+        {"id": "rcmbnt-pwl-2", "qty": 4},
+        {"id": "rcmbnt-pwl-3", "qty": 4},
+        {"id": "strata-core", "qty": 1},
+        {"id": "strata-arms", "qty": 1},
+        {"id": "strata-legs", "qty": 1},
+        {"id": "strata-helmet", "qty": 1},
+        {"id": "strata-backpack", "qty": 1}
+      ]
+    },
+    {
+      "id": "corbel-crush",
+      "cat": "armor",
+      "name": "Shiny Builder Suit",
+      "reward": "Corbel Crush Set",
+      "ingredients": [
+        {"id": "corbel-helmet", "qty": 1},
+        {"id": "corbel-core", "qty": 1},
+        {"id": "corbel-legs", "qty": 1},
+        {"id": "corbel-arms", "qty": 1},
+        {"id": "corbel-backpack", "qty": 1},
+        {"id": "asd-secure-drive", "qty": 10},
+        {"id": "rcmbnt-rgl-1", "qty": 5},
+        {"id": "rcmbnt-rgl-2", "qty": 5},
+        {"id": "rcmbnt-rgl-3", "qty": 5}
+      ]
+    },
+    {
+      "id": "palatino-mark-1",
+      "cat": "armor",
+      "name": "Test Armor",
+      "reward": "Palatino Mark 1 Set",
+      "reputationReward": 25,
+      "ingredients": [
+        {"id": "palatino-helmet", "qty": 1},
+        {"id": "palatino-core", "qty": 1},
+        {"id": "palatino-legs", "qty": 1},
+        {"id": "palatino-arms", "qty": 1},
+        {"id": "palatino-backpack", "qty": 1},
+        {"id": "yormandi-eye", "qty": 14},
+        {"id": "yormandi-tongue", "qty": 7}
+      ]
+    },
+    {
+      "id": "testudo-clanguard",
+      "cat": "armor",
+      "name": "Armor with Vanduul",
+      "reward": "Testudo Clanguard Set",
+      "reputationReward": 25,
+      "ingredients": [
+        {"id": "testudo-helmet", "qty": 1},
+        {"id": "testudo-core", "qty": 1},
+        {"id": "testudo-arms", "qty": 1},
+        {"id": "testudo-legs", "qty": 1},
+        {"id": "testudo-backpack", "qty": 1},
+        {"id": "vanduul-plating", "qty": 15},
+        {"id": "vanduul-metal", "qty": 15}
+      ]
+    },
+    {
+      "id": "parallax-kopion",
+      "cat": "weapon",
+      "name": "Fun Kopion Skull Gun",
+      "reward": "Parallax 'Kopion Skull' Energy Assault Rifle",
+      "reputationReward": 10,
+      "ingredients": [
+        {"id": "jaclium", "qty": 20},
+        {"id": "saldynium", "qty": 15},
+        {"id": "carinite", "qty": 10},
+        {"id": "parallax-rifle", "qty": 1},
+        {"id": "tundra-kopion-horn", "qty": 20}
+      ]
+    },
+    {
+      "id": "parallax-military",
+      "cat": "weapon",
+      "name": "Fun Military Skull Gun",
+      "reward": "Parallax 'Military Skull' Energy Assault Rifle",
+      "reputationReward": 10,
+      "ingredients": [
+        {"id": "jaclium", "qty": 20},
+        {"id": "saldynium", "qty": 15},
+        {"id": "carinite", "qty": 10},
+        {"id": "parallax-rifle", "qty": 1},
+        {"id": "valakkar-fang-juvenile", "qty": 20}
+      ]
+    },
+    {
+      "id": "prism-irradiated",
+      "cat": "weapon",
+      "name": "Make VOLT shotgun angrier",
+      "reward": "Prism 'Irradiated' Laser Shotgun",
+      "reputationReward": 10,
+      "ingredients": [
+        {"id": "prism-shotgun", "qty": 1},
+        {"id": "valakkar-fang-adult", "qty": 10},
+        {"id": "valakkar-fang-juvenile", "qty": 5}
+      ]
+    },
+    {
+      "id": "zenith-snow",
+      "cat": "weapon",
+      "name": "Snow Snipe",
+      "reward": "Zenith 'Snow Camo' Laser Sniper Rifle",
+      "reputationReward": 10,
+      "ingredients": [
+        {"id": "asd-secure-drive", "qty": 7},
+        {"id": "zenith-sniper", "qty": 1}
+      ]
+    },
+    {
+      "id": "fresnel-yormandi",
+      "cat": "weapon",
+      "name": "Yormandi Gun",
+      "reward": "Fresnel 'Yormandi' LMG",
+      "reputationReward": 10,
+      "ingredients": [
+        {"id": "fresnel-lmg", "qty": 1},
+        {"id": "yormandi-eye", "qty": 6},
+        {"id": "yormandi-tongue", "qty": 3}
+      ]
+    },
+    {
+      "id": "boomtube-clanguard",
+      "cat": "weapon",
+      "name": "Curious Weapon",
+      "reward": "Boomtube 'Clanguard' Rocket Launcher",
+      "reputationReward": 10,
+      "ingredients": [
+        {"id": "boomtube-launcher", "qty": 1},
+        {"id": "vanduul-plating", "qty": 2},
+        {"id": "vanduul-metal", "qty": 2}
+      ]
+    },
+    {
+      "id": "tripledown-hotshot",
+      "cat": "weapon",
+      "name": "Hot Shot",
+      "reward": "Tripledown 'Hot Shot' Pistol",
+      "reputationReward": 10,
+      "ingredients": [
+        {"id": "carinite", "qty": 20},
+        {"id": "bluemoon-fungus", "qty": 20},
+        {"id": "tripledown-pistol", "qty": 1}
+      ]
+    },
+    {
+      "id": "atls-cool-metal",
+      "cat": "vehicle",
+      "name": "ATLS Cool Metal Color",
+      "reward": "ATLS GEO 'Cool Metal'",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 1},
+        {"id": "carinite-pure", "qty": 1},
+        {"id": "argo-atls", "qty": 1}
+      ]
+    },
+    {
+      "id": "atls-ikti",
+      "cat": "vehicle",
+      "name": "Make ATLS shoot",
+      "reward": "ATLS IKTI",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "argo-atls", "qty": 1},
+        {"id": "wikelo-favor", "qty": 2},
+        {"id": "valakkar-fang-apex", "qty": 5},
+        {"id": "nn-13-cannon", "qty": 2}
+      ]
+    },
+    {
+      "id": "atls-snowland",
+      "cat": "vehicle",
+      "name": "ATLS Snowland Color",
+      "reward": "ATLS GEO 'Snowland'",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 1},
+        {"id": "valakkar-pearl-aaa", "qty": 1},
+        {"id": "argo-atls", "qty": 1}
+      ]
+    },
+    {
+      "id": "atls-orange-line",
+      "cat": "vehicle",
+      "name": "ATLS Orange Line",
+      "reward": "ATLS GEO 'Orange Line'",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 1},
+        {"id": "argo-atls", "qty": 1}
+      ]
+    },
+    {
+      "id": "atls-geo-ikti",
+      "cat": "vehicle",
+      "name": "Make jumpy ATLS shoot",
+      "reward": "ATLS GEO IKTI",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "argo-atls-geo", "qty": 1},
+        {"id": "argo-atls-ikti", "qty": 1},
+        {"id": "nn-13-cannon", "qty": 2},
+        {"id": "wikelo-favor", "qty": 1}
+      ]
+    },
+    {
+      "id": "noxy-mod",
+      "cat": "ship",
+      "name": "Noxy Mod",
+      "reward": "Aopoa Nox Wikelo Special",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 4}
+      ]
+    },
+    {
+      "id": "pulse-plus",
+      "cat": "ship",
+      "name": "Pulse Plus",
+      "reward": "Mirai Pulse Wikelo Special",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 4}
+      ]
+    },
+    {
+      "id": "ursa-medivac",
+      "cat": "ship",
+      "name": "Make a Ursa Mod",
+      "reward": "RSI Ursa Medivac Wikelo Special",
+      "reputationReward": 20,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 4},
+        {"id": "saldynium", "qty": 20},
+        {"id": "jaclium", "qty": 20}
+      ]
+    },
+    {
+      "id": "fortune-special",
+      "cat": "ship",
+      "name": "Fortune ship for you",
+      "reward": "MISC Fortune Wikelo Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 3},
+        {"id": "carinite-pure", "qty": 1}
+      ]
+    },
+    {
+      "id": "upgrade-intrepid",
+      "cat": "ship",
+      "name": "Upgrade Intrepid",
+      "reward": "Crusader Intrepid Wikelo Work Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "gov-medal", "qty": 1},
+        {"id": "wikelo-favor", "qty": 3}
+      ]
+    },
+    {
+      "id": "c1-spirit-mod",
+      "cat": "ship",
+      "name": "Spirit Cargo mod",
+      "reward": "Crusader C1 Spirit Wikelo Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 8},
+        {"id": "tevarin-marker", "qty": 1}
+      ]
+    },
+    {
+      "id": "peregrine-mod",
+      "cat": "ship",
+      "name": "Peregrine Wikelo Mod",
+      "reward": "Aegis Sabre Peregrine Wikelo Speedy Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 4},
+        {"id": "comp-board", "qty": 1}
+      ]
+    },
+    {
+      "id": "zeus-es-special",
+      "cat": "ship",
+      "name": "Zeus Special",
+      "reward": "RSI Zeus Mk II ES Wikelo Work Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 10},
+        {"id": "uee-medal", "qty": 1}
+      ]
+    },
+    {
+      "id": "golem-rocks",
+      "cat": "ship",
+      "name": "Golem Rocks",
+      "reward": "Drake Golem Wikelo Work Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 2},
+        {"id": "asd-secure-drive", "qty": 15}
+      ]
+    },
+    {
+      "id": "wikelo-wolf",
+      "cat": "ship",
+      "name": "Where Wolf? Here Wolf",
+      "reward": "Kruger L-21 Wolf Wikelo Sneak Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 10},
+        {"id": "vanduul-metal", "qty": 10},
+        {"id": "vanduul-plating", "qty": 10},
+        {"id": "artefact-fragment", "qty": 1}
+      ]
+    },
+    {
+      "id": "rsi-meteor",
+      "cat": "ship",
+      "name": "RSI Meteor Mod",
+      "reward": "RSI Meteor Wikelo Sneak Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 10},
+        {"id": "ace-helmet", "qty": 5},
+        {"id": "artefact-fragment", "qty": 1},
+        {"id": "vanduul-plating", "qty": 10},
+        {"id": "vanduul-metal", "qty": 10}
+      ]
+    },
+    {
+      "id": "wikelo-raft",
+      "cat": "ship",
+      "name": "Ready for RAFT?",
+      "reward": "Argo RAFT Wikelo Work Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 8},
+        {"id": "valakkar-fang-adult", "qty": 10},
+        {"id": "valakkar-fang-juvenile", "qty": 20},
+        {"id": "irradiated-kopion-horn", "qty": 5},
+        {"id": "valakkar-pearl-aaa", "qty": 1}
+      ]
+    },
+    {
+      "id": "wikelo-prospector",
+      "cat": "ship",
+      "name": "Prospects Look Good",
+      "reward": "MISC Prospector Wikelo Work Special",
+      "reputationReward": 30,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 6},
+        {"id": "carinite", "qty": 20},
+        {"id": "saldynium", "qty": 30},
+        {"id": "jaclium", "qty": 40},
+        {"id": "carinite-pure", "qty": 1}
+      ]
+    },
+    {
+      "id": "zeus-cl",
+      "cat": "ship",
+      "name": "Zeus Cargo Special",
+      "reward": "RSI Zeus Mk II CL",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 20},
+        {"id": "carinite", "qty": 15},
+        {"id": "ace-helmet", "qty": 10},
+        {"id": "carinite-pure", "qty": 2}
+      ]
+    },
+    {
+      "id": "navy-f7",
+      "cat": "ship",
+      "name": "Wikelo Navy F7",
+      "reward": "Anvil F7 Hornet Mk Wikelo",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 16},
+        {"id": "comp-board", "qty": 3},
+        {"id": "ace-helmet", "qty": 5},
+        {"id": "gov-medal", "qty": 1}
+      ]
+    },
+    {
+      "id": "scorpius-mod",
+      "cat": "ship",
+      "name": "Build a Mod Scorpius",
+      "reward": "RSI Scorpius Wikelo Sneak Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 15},
+        {"id": "comp-board", "qty": 4},
+        {"id": "tevarin-marker", "qty": 1}
+      ]
+    },
+    {
+      "id": "ares-inferno",
+      "cat": "ship",
+      "name": "Starfighter Inferno Special",
+      "reward": "Crusader Ares Star Fighter Inferno Wikelo War Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 10},
+        {"id": "yormandi-tongue", "qty": 5},
+        {"id": "ace-helmet", "qty": 5},
+        {"id": "uee-medal", "qty": 1}
+      ]
+    },
+    {
+      "id": "ares-ion",
+      "cat": "ship",
+      "name": "Sneaky Starfighter Ion",
+      "reward": "Crusader Ares Star Fighter Ion Wikelo Sneak Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 10},
+        {"id": "yormandi-eye", "qty": 10},
+        {"id": "ace-helmet", "qty": 5},
+        {"id": "tevarin-marker", "qty": 1}
+      ]
+    },
+    {
+      "id": "guardian-qi",
+      "cat": "ship",
+      "name": "Guardian take down ship",
+      "reward": "Mirai Guardian QI Wikelo Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 25},
+        {"id": "valakkar-pearl-aa", "qty": 15},
+        {"id": "comp-board", "qty": 15},
+        {"id": "uee-medal", "qty": 2}
+      ]
+    },
+    {
+      "id": "guardian-mx",
+      "cat": "ship",
+      "name": "Guardian WiK-X",
+      "reward": "Mirai Guardian MX Wikelo War Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 25},
+        {"id": "ace-helmet", "qty": 15},
+        {"id": "artefact-fragment", "qty": 2},
+        {"id": "vanduul-plating", "qty": 30},
+        {"id": "vanduul-metal", "qty": 30}
+      ]
+    },
+    {
+      "id": "guardian-fight",
+      "cat": "ship",
+      "name": "Guardian Fight Mod",
+      "reward": "Mirai Guardian Wikelo War Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "valakkar-pearl-aa", "qty": 15},
+        {"id": "ace-helmet", "qty": 10},
+        {"id": "tevarin-marker", "qty": 1},
+        {"id": "wikelo-favor", "qty": 20}
+      ]
+    },
+    {
+      "id": "firebird-mod",
+      "cat": "ship",
+      "name": "Firebird Mod",
+      "reward": "Aegis Sabre Firebird Wikelo War Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 15},
+        {"id": "comp-board", "qty": 4},
+        {"id": "ace-helmet", "qty": 3},
+        {"id": "gov-medal", "qty": 1}
+      ]
+    },
+    {
+      "id": "terrapin-medic",
+      "cat": "ship",
+      "name": "What is Terrapin?",
+      "reward": "Anvil Terrapin Medic Wikelo Savior Special",
+      "reputationReward": 100,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 15},
+        {"id": "asd-secure-drive", "qty": 10},
+        {"id": "tevarin-marker", "qty": 1}
+      ]
+    },
+    {
+      "id": "taurus-special",
+      "cat": "ship",
+      "name": "Want Taurus ship",
+      "reward": "RSI Constellation Taurus Wikelo War Special",
+      "reputationReward": 250,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 30},
+        {"id": "carinite-pure", "qty": 3},
+        {"id": "valakkar-pearl-aaa", "qty": 3},
+        {"id": "gov-medal", "qty": 3}
+      ]
+    },
+    {
+      "id": "f8c-war-mod",
+      "cat": "ship",
+      "name": "F8 War Mod",
+      "reward": "Anvil F8C Lightning Wikelo War Special",
+      "reputationReward": 250,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 40},
+        {"id": "carinite-pure", "qty": 4},
+        {"id": "valakkar-pearl-aaa", "qty": 4},
+        {"id": "tevarin-marker", "qty": 4}
+      ]
+    },
+    {
+      "id": "f8c-sneaky-stabber",
+      "cat": "ship",
+      "name": "Sneaky Stabber",
+      "reward": "Anvil F8C Lightning Wikelo Sneak Special",
+      "reputationReward": 250,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 40},
+        {"id": "comp-board", "qty": 15},
+        {"id": "carinite-pure", "qty": 3},
+        {"id": "valakkar-pearl-aaa", "qty": 3}
+      ]
+    },
+    {
+      "id": "prowler-utility",
+      "cat": "ship",
+      "name": "Prowler More Utility",
+      "reward": "Esperia Prowler Utility Wikelo Work Special",
+      "reputationReward": 250,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 40},
+        {"id": "yormandi-eye", "qty": 20},
+        {"id": "yormandi-tongue", "qty": 10},
+        {"id": "valakkar-pearl-aaa", "qty": 3},
+        {"id": "carinite-pure", "qty": 3}
+      ]
+    },
+    {
+      "id": "starlancer-tac",
+      "cat": "ship",
+      "name": "New Move Big Starlancer Ship",
+      "reward": "MISC Starlancer TAC",
+      "reputationReward": 250,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 50},
+        {"id": "ace-helmet", "qty": 15},
+        {"id": "asd-secure-drive", "qty": 30},
+        {"id": "valakkar-pearl-aaa", "qty": 3},
+        {"id": "tevarin-marker", "qty": 3},
+        {"id": "comp-board", "qty": 3},
+        {"id": "carinite-pure", "qty": 3}
+      ]
+    },
+    {
+      "id": "starlancer-max",
+      "cat": "ship",
+      "name": "More than a Max",
+      "reward": "MISC Starlancer MAX",
+      "reputationReward": 250,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 30},
+        {"id": "ace-helmet", "qty": 10},
+        {"id": "carinite-pure", "qty": 3},
+        {"id": "valakkar-pearl-aaa", "qty": 3}
+      ]
+    },
+    {
+      "id": "asgard-fight",
+      "cat": "ship",
+      "name": "Asgard Fight Mod",
+      "reward": "Anvil Asgard Wikelo War Special",
+      "reputationReward": 250,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 50},
+        {"id": "asd-secure-drive", "qty": 3},
+        {"id": "rcmbnt-pwl-1", "qty": 5},
+        {"id": "rcmbnt-pwl-2", "qty": 5},
+        {"id": "rcmbnt-pwl-3", "qty": 5},
+        {"id": "rcmbnt-rgl-1", "qty": 5},
+        {"id": "rcmbnt-rgl-2", "qty": 5},
+        {"id": "rcmbnt-rgl-3", "qty": 5},
+        {"id": "rcmbnt-xtl-1", "qty": 5},
+        {"id": "rcmbnt-xtl-2", "qty": 5},
+        {"id": "rcmbnt-xtl-3", "qty": 5}
+      ]
+    },
+    {
+      "id": "a2-war-mod",
+      "cat": "ship",
+      "name": "Starlifter A2 War Mod",
+      "reward": "Crusader A2 Hercules Starlifter Wikelo War Special",
+      "reputationReward": 500,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 50},
+        {"id": "polaris-bit", "qty": 20},
+        {"id": "mg-scrip", "qty": 20},
+        {"id": "asd-secure-drive", "qty": 6},
+        {"id": "valakkar-pearl-aaa", "qty": 6},
+        {"id": "tevarin-marker", "qty": 6},
+        {"id": "comp-board", "qty": 6},
+        {"id": "carinite-pure", "qty": 6}
+      ]
+    },
+    {
+      "id": "polaris-special",
+      "cat": "ship",
+      "name": "Now make Polaris. Short Time Deal.",
+      "reward": "RSI Polaris Wikelo Special",
+      "reputationReward": 1000,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 50},
+        {"id": "polaris-bit", "qty": 15},
+        {"id": "asd-secure-drive", "qty": 15},
+        {"id": "rcmbnt-pwl-1", "qty": 1},
+        {"id": "rcmbnt-pwl-2", "qty": 1},
+        {"id": "rcmbnt-pwl-3", "qty": 1},
+        {"id": "rcmbnt-rgl-1", "qty": 1},
+        {"id": "rcmbnt-rgl-2", "qty": 1},
+        {"id": "rcmbnt-rgl-3", "qty": 1},
+        {"id": "rcmbnt-xtl-1", "qty": 1},
+        {"id": "rcmbnt-xtl-2", "qty": 1},
+        {"id": "rcmbnt-xtl-3", "qty": 1},
+        {"id": "comp-board", "qty": 10},
+        {"id": "carinite", "qty": 20},
+        {"id": "valakkar-fang-apex", "qty": 20},
+        {"id": "mg-scrip", "qty": 20},
+        {"id": "ace-helmet", "qty": 15},
+        {"id": "valakkar-pearl-aaa", "qty": 15},
+        {"id": "uee-medal", "qty": 15},
+        {"id": "carinite-pure", "qty": 15}
+      ]
+    },
+    {
+      "id": "wolf-special",
+      "cat": "ship",
+      "name": "Most Special Wolf",
+      "reward": "L-21 Wolf War Special + Antium Midnight Sun Set + Fresnel Deepwater LMG",
+      "reputationRequired": 340,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 5}
+      ]
+    },
+    {
+      "id": "idris-war-special",
+      "cat": "ship",
+      "name": "Special Idris For Killing",
+      "reward": "Aegis Idris-P Wikelo War Special",
+      "reputationRequired": 999,
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 50},
+        {"id": "polaris-bit", "qty": 50},
+        {"id": "comp-board", "qty": 50},
+        {"id": "carinite", "qty": 50},
+        {"id": "valakkar-fang-apex", "qty": 50},
+        {"id": "mg-scrip", "qty": 50},
+        {"id": "ace-helmet", "qty": 50},
+        {"id": "valakkar-pearl-aaa", "qty": 30},
+        {"id": "uee-medal", "qty": 30},
+        {"id": "asd-secure-drive", "qty": 30},
+        {"id": "carinite-pure", "qty": 30},
+        {"id": "rcmbnt-pwl-1", "qty": 5},
+        {"id": "rcmbnt-pwl-2", "qty": 5},
+        {"id": "rcmbnt-pwl-3", "qty": 5},
+        {"id": "rcmbnt-rgl-1", "qty": 5},
+        {"id": "rcmbnt-rgl-2", "qty": 5},
+        {"id": "rcmbnt-rgl-3", "qty": 5},
+        {"id": "rcmbnt-xtl-1", "qty": 5},
+        {"id": "rcmbnt-xtl-2", "qty": 5},
+        {"id": "rcmbnt-xtl-3", "qty": 5}
+      ]
+    },
+    {
+      "id": "kruger-l21-war",
+      "cat": "ship",
+      "name": "Kruger L-21 War Special",
+      "reward": "Kruger L-21 Wolf (War Special)",
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 15},
+        {"id": "vanduul-plating", "qty": 5},
+        {"id": "vanduul-metal", "qty": 5},
+        {"id": "ace-helmet", "qty": 3}
+      ]
+    },
+    {
+      "id": "kruger-l21-pristine",
+      "cat": "ship",
+      "name": "Kruger L-21 Wolf (Pristine)",
+      "reward": "Kruger L-21 Wolf (Pristine)",
+      "ingredients": [
+        {"id": "wikelo-favor", "qty": 1},
+        {"id": "tevarin-marker", "qty": 1}
+      ]
+    },
+    {
+      "id": "exchange-pearls",
+      "cat": "currency",
+      "name": "Trade Worm Parts for Favors?",
+      "reward": "1× Wikelo Favor",
+      "ingredients": [
+        {"id": "valakkar-pearl-aa", "qty": 12}
+      ]
+    },
+    {
+      "id": "exchange-mg-scrip",
+      "cat": "currency",
+      "name": "Trade Merc Scrip for Favors?",
+      "reward": "1× Wikelo Favor",
+      "ingredients": [
+        {"id": "mg-scrip", "qty": 50}
+      ]
+    },
+    {
+      "id": "exchange-council-scrip",
+      "cat": "currency",
+      "name": "Trade Council Scrip for Favors?",
+      "reward": "1× Wikelo Favor",
+      "ingredients": [
+        {"id": "council-scrip", "qty": 50}
+      ]
+    },
+    {
+      "id": "exchange-carinite",
+      "cat": "currency",
+      "name": "Turn Things to Favor",
+      "reward": "1× Wikelo Favor",
+      "ingredients": [
+        {"id": "carinite", "qty": 50}
+      ]
+    },
+    {
+      "id": "exchange-quantanium",
+      "cat": "currency",
+      "name": "Want Polaris? Need something special.",
+      "reward": "1× Polaris Bit",
+      "ingredients": [
+        {"id": "quantainium", "qty": 24}
+      ]
+    }
+  ]
+}
