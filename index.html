@@ -16,11 +16,9 @@
         .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
         
         .tab-header { background: #111; border: 1px solid var(--border); color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; text-transform: uppercase; font-weight: bold; }
-        .tab-header:hover { background: #1a1a1a; }
         .tab-content { display: none; padding: 5px; border: 1px solid #222; background: #080808; border-top: none; }
         .tab-content.open { display: block; }
         
-        /* Sidebar Item Layout */
         .inv-item { display: grid; grid-template-columns: 1fr 50px 100px; gap: 8px; align-items: center; padding: 6px 8px; border-bottom: 1px solid #111; }
         .inv-item span { font-size: 10px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .inv-item input { background: #000; border: 1px solid var(--t-orange); color: var(--t-orange); text-align: center; font-size: 11px; outline: none; }
@@ -31,13 +29,11 @@
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 15px; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; position: relative; transition: 0.2s; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; }
         .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
         .card.pinned { border-left: 4px solid var(--t-orange); }
-        
         .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; font-weight: bold; }
         .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
-        .ingred-list li { margin-bottom: 4px; }
         .loc-tag { color: #666; font-size: 9px; margin-left: 5px; }
         .status-ready { color: var(--success); }
         .status-missing { color: var(--error); }
@@ -59,8 +55,7 @@
             <span id="sync-text">STATUS: LOCAL_ONLY</span>
         </div>
     </div>
-    <div id="inventory-tabs">
-        </div>
+    <div id="inventory-tabs"></div>
     <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_LOCAL_DATA ]</button>
 </div>
 
@@ -69,20 +64,18 @@
         <h1 id="stats-header">WIKELO::MANIFEST</h1>
         <div style="display:flex; gap:8px; align-items:center;">
             <input type="text" id="manifest-search" class="btn" style="width:180px; text-align:left;" placeholder="SEARCH..." oninput="updateDisplay()">
-            <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+            <button class="btn" onclick="setFilter('all')">ALL</button>
             <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
-            <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
+            <button class="btn" onclick="setFilter('tracked')">PINNED</button>
         </div>
     </div>
     <div id="contract-grid" class="grid"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPid8qIQpmW--T-fE6Qaz-CS5MbqaSIDKfZiJtMJe5rDYcP5LBVotXZDTkBrzXDL80/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywgKsYfx5yZP2cgLDlfsKia5hEcbS5LrJ6v4SQtdzRF4CyBGPYtfz_gnTiNbO3gaCxUA/exec";
     let MATERIALS = [];
     let CONTRACTS = [];
-    
-    // State Initialization
     let inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
     let completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
     let tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
@@ -99,31 +92,24 @@
     };
 
     async function loadSystemData() {
-        try {
-            const response = await fetch('wikelo-data.json');
-            const data = await response.json();
-            MATERIALS = data.materials;
-            CONTRACTS = data.contracts;
-            
-            // Restore UI
-            document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
-            document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
-            
-            renderInventoryTabs();
-            updateDisplay();
-            
-            // Start Cloud Loop
-            setInterval(syncWithCloud, 15000);
-            syncWithCloud();
-        } catch (e) {
-            console.error("Data Load Failure", e);
-        }
+        const response = await fetch('wikelo-data.json');
+        const data = await response.json();
+        MATERIALS = data.materials;
+        CONTRACTS = data.contracts;
+        
+        document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
+        document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
+        
+        renderInventoryTabs();
+        updateDisplay();
+        
+        setInterval(syncWithCloud, 15000);
+        syncWithCloud();
     }
 
     function renderInventoryTabs() {
         const container = document.getElementById('inventory-tabs');
         container.innerHTML = '';
-        
         Object.entries(CATEGORIES).forEach(([key, label]) => {
             const header = document.createElement('div');
             header.className = 'tab-header';
@@ -133,10 +119,8 @@
                 content.classList.toggle('open');
                 header.querySelector('span:last-child').innerText = content.classList.contains('open') ? '[-]' : '[+]';
             };
-
             const content = document.createElement('div');
             content.className = 'tab-content';
-            
             MATERIALS.filter(m => m.cat === key).forEach(mat => {
                 const data = inventory[mat.id] || { qty: 0, loc: "" };
                 const item = document.createElement('div');
@@ -148,7 +132,6 @@
                 `;
                 content.appendChild(item);
             });
-
             container.appendChild(header);
             container.appendChild(content);
         });
@@ -158,43 +141,23 @@
         if (!inventory[id]) inventory[id] = { qty: 0, loc: "" };
         if (field === 'qty') inventory[id].qty = Math.max(0, parseInt(val) || 0);
         else inventory[id].loc = val.toUpperCase();
-        
         localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
         updateDisplay();
-        syncWithCloud(); // Force instant push
+        syncWithCloud();
     }
 
     async function syncWithCloud() {
         const squad = document.getElementById('squad-code').value;
         const handle = document.getElementById('user-handle').value;
         if (!squad || !handle) return;
-
         const lamp = document.getElementById('sync-lamp');
-        const text = document.getElementById('sync-text');
-
         try {
-            const payload = {
-                action: "sync",
-                squadCode: squad,
-                handle: handle,
-                inventory: JSON.stringify(inventory),
-                completed: JSON.stringify(completed)
-            };
-
+            const payload = { action: "sync", squadCode: squad, handle: handle, inventory: JSON.stringify(inventory), completed: JSON.stringify(completed) };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-
             lamp.classList.add('active');
-            text.innerText = "STATUS: CLOUD_SYNC_ACTIVE";
+            document.getElementById('sync-text').innerText = "STATUS: CLOUD_SYNC_ACTIVE";
             setTimeout(() => lamp.classList.remove('active'), 1500);
-        } catch (e) {
-            text.innerText = "STATUS: SYNC_OFFLINE";
-        }
-    }
-
-    function saveConfig() {
-        localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value);
-        localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value);
-        syncWithCloud();
+        } catch (e) { document.getElementById('sync-text').innerText = "STATUS: SYNC_ERROR"; }
     }
 
     function updateDisplay() {
@@ -202,76 +165,39 @@
         const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
         let readyCount = 0;
-
-        CONTRACTS.sort((a,b) => (tracked.includes(b.id) - tracked.includes(a.id)) || a.name.localeCompare(b.name))
-        .forEach(c => {
+        CONTRACTS.sort((a,b) => (tracked.includes(b.id) - tracked.includes(a.id)) || a.name.localeCompare(b.name)).forEach(c => {
             const isDone = completed.includes(c.id);
             const isPinned = tracked.includes(c.id);
             if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
-
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
                 const data = inventory[ing.id] || { qty: 0, loc: "" };
                 if (data.qty < ing.qty) canCraft = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                const locTag = data.loc ? `<span class="loc-tag">[${data.loc}]</span>` : "";
-                return `<li class="${data.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${data.qty}/${ing.qty} ${mat ? mat.name : ing.id}${locTag}</li>`;
+                return `<li class="${data.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${data.qty}/${ing.qty} ${mat ? mat.name : ing.id} ${data.loc ? '<span class="loc-tag">['+data.loc+']</span>' : ''}</li>`;
             }).join('');
-
             if (canCraft && !isDone) readyCount++;
-            
-            const show = (filterMode === 'all') || (filterMode === 'craftable' && canCraft && !isDone) || (filterMode === 'tracked' && isPinned);
-
-            if (show) {
+            if (filterMode === 'all' || (filterMode === 'craftable' && canCraft && !isDone) || (filterMode === 'tracked' && isPinned)) {
                 const card = document.createElement('div');
-                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isPinned ? 'pinned' : ''} ${isDone ? 'completed' : ''}`;
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between;">
-                        <span style="font-size:9px; text-transform:uppercase; color:#555;">${c.cat}</span>
-                        <button class="btn" style="border:none; color:${isPinned ? 'var(--t-orange)' : '#444'}" onclick="toggleTrack('${c.id}')">${isPinned ? '★' : '☆'}</button>
-                    </div>
-                    <b style="font-size:14px; color:#fff;">${c.name}</b><br>
-                    <small class="reward-text">REWARD: ${c.reward}</small>
-                    <ul class="ingred-list">${ingreds}</ul>
-                    ${isDone ? `<button class="btn" onclick="undo('${c.id}')">[ COMPLETE: UNDO? ]</button>` : 
-                    `<button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN_CONTRACT ]' : '[ INSUFFICIENT_STOCK ]'}</button>`}
-                `;
+                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isPinned ? 'pinned' : ''}`;
+                card.innerHTML = `<div style="display:flex; justify-content:space-between;"><span style="font-size:9px; color:#555;">${c.cat}</span><button class="btn" style="border:none; color:${isPinned ? 'var(--t-orange)' : '#444'}" onclick="toggleTrack('${c.id}')">${isPinned ? '★' : '☆'}</button></div><b style="color:#fff;">${c.name}</b><br><small class="reward-text">REWARD: ${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN ]' : '[ INCOMPLETE ]'}</button>`;
                 grid.appendChild(card);
             }
         });
         document.getElementById('stats-header').innerText = `MANIFEST :: ${readyCount} READY`;
     }
 
-    function toggleTrack(id) {
-        const idx = tracked.indexOf(id);
-        if(idx > -1) tracked.splice(idx, 1); else tracked.push(id);
-        localStorage.setItem('wikelo-tracked', JSON.stringify(tracked));
-        updateDisplay();
+    function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
+    function toggleTrack(id) { const idx = tracked.indexOf(id); if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); updateDisplay(); }
+    function setFilter(m) { filterMode = m; updateDisplay(); }
+    function execute(id) { 
+        const c = CONTRACTS.find(x => x.id === id); 
+        c.ingredients.forEach(ing => inventory[ing.id].qty -= ing.qty); 
+        completed.push(id); 
+        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory)); 
+        localStorage.setItem('wikelo-completed', JSON.stringify(completed)); 
+        renderInventoryTabs(); updateDisplay(); syncWithCloud(); 
     }
-
-    function setFilter(mode) {
-        filterMode = mode;
-        ['f-all', 'f-craft', 'f-track'].forEach(id => document.getElementById(id).classList.remove('active-filter'));
-        document.getElementById(`f-${mode === 'tracked' ? 'track' : mode === 'craftable' ? 'craft' : 'all'}`).classList.add('active-filter');
-        updateDisplay();
-    }
-
-    function execute(id) {
-        const c = CONTRACTS.find(x => x.id === id);
-        if(!confirm(`HAND IN MATERIALS FOR: ${c.name}?`)) return;
-        c.ingredients.forEach(ing => inventory[ing.id].qty -= ing.qty);
-        completed.push(id);
-        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
-        localStorage.setItem('wikelo-completed', JSON.stringify(completed));
-        renderInventoryTabs(); updateDisplay(); syncWithCloud();
-    }
-
-    function undo(id) {
-        completed = completed.filter(x => x !== id);
-        localStorage.setItem('wikelo-completed', JSON.stringify(completed));
-        updateDisplay(); syncWithCloud();
-    }
-
     function resetAll() { if(confirm("WIPE DATA?")) { localStorage.clear(); location.reload(); } }
     window.onload = loadSystemData;
 </script>
