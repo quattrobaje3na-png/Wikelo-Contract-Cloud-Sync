@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v1.9.9</title>
+    <title>WIKELO::LOGISTICS_SYNC v2.0.0</title>
     <style>
         :root { 
-            --t-orange: #e67e22; /* Muted Amber */
+            --t-orange: #e67e22; 
             --t-orange-dim: rgba(230, 126, 34, 0.2);
-            --bg: #0f1113; /* Deep Charcoal */
+            --bg: #0f1113; 
             --sidebar-bg: #16191c;
             --card: #1c1f23;
             --border: #2d3238;
@@ -62,7 +62,6 @@
             font-size: 11px;
             outline: none;
         }
-        .sync-panel input.btn-input:focus { border-color: var(--t-orange); }
 
         .sync-status { display: flex; align-items: center; font-size: 10px; color: var(--text-dim); }
         .lamp { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: #333; }
@@ -106,18 +105,27 @@
             border: 1px solid var(--border); 
             padding: 18px; 
             border-radius: 4px;
-            transition: transform 0.2s, border-color 0.2s; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        .card:hover { border-color: #444; }
         .card.craftable { border-top: 3px solid var(--success); }
         .card.pinned { border-left: 3px solid var(--t-orange); }
         
         .reward-text { color: #9b59b6; font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 4px 0; display: block; }
         .ingred-list { font-size: 12px; list-style: none; padding: 0; margin: 12px 0; color: var(--text-dim); }
-        .ingred-list li { margin-bottom: 8px; }
+        .ingred-list li { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 5px; }
         .status-ready { color: var(--success); }
         .status-missing { color: var(--error); }
-        .wiki-loc { font-size: 10px; color: #555; display: block; margin-top: 2px; font-style: italic; }
+        
+        .where-loc { 
+            font-size: 10px; 
+            color: #6b7280; 
+            display: block; 
+            margin-top: 4px; 
+            line-height: 1.3;
+        }
+        .where-tag { color: var(--t-orange); font-weight: bold; font-size: 9px; margin-right: 4px; }
 
         /* --- BUTTONS --- */
         .btn { 
@@ -138,12 +146,11 @@
         @media (max-width: 900px) {
             body { flex-direction: column; overflow-y: auto; height: auto; }
             .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); height: auto; }
-            .header-controls { flex-direction: column; gap: 15px; position: sticky; top: 0; }
+            .header-controls { flex-direction: column; gap: 15px; position: sticky; top: 0; padding: 15px; }
             .grid { grid-template-columns: 1fr; }
         }
 
         .tab-header { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 10px; margin-top: 4px; text-transform: uppercase; }
-        .tab-header:hover { color: var(--t-orange); }
         .tab-content { display: none; padding: 5px; border: 1px solid var(--border); border-top: none; background: rgba(0,0,0,0.1); }
         .tab-content.open { display: block; }
         .inv-item { display: grid; grid-template-columns: 1fr 50px 80px; gap: 5px; align-items: center; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.02); }
@@ -291,8 +298,11 @@
                 const data = inventory[ing.id] || { qty: 0, loc: "" };
                 if (data.qty < ing.qty) canCraft = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                const wikiLoc = LOCATIONS[ing.id] || "No Data";
-                return `<li class="${data.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${data.qty}/${ing.qty} ${mat ? mat.name : ing.id} <span class="wiki-loc">${wikiLoc}</span></li>`;
+                const locStr = LOCATIONS[ing.id] || "No Data Available";
+                return `<li class="${data.qty >= ing.qty ? 'status-ready' : 'status-missing'}">
+                    <div>${data.qty}/${ing.qty} ${mat ? mat.name : ing.id}</div>
+                    <span class="where-loc"><span class="where-tag">WHERE:</span>${locStr}</span>
+                </li>`;
             }).join('');
 
             if (canCraft && !isDone) readyCount++;
@@ -300,15 +310,17 @@
                 const card = document.createElement('div');
                 card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isPinned ? 'pinned' : ''}`;
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
-                        <span style="font-size:9px; color:#555; text-transform:uppercase;">${c.cat}</span>
-                        <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')">
-                            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        </button>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:10px;">
+                            <span style="font-size:9px; color:#555; text-transform:uppercase;">${c.cat}</span>
+                            <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')">
+                                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            </button>
+                        </div>
+                        <b style="color:var(--text-main); font-size:14px;">${c.name}</b>
+                        <small class="reward-text">${c.reward}</small>
+                        <ul class="ingred-list">${ingreds}</ul>
                     </div>
-                    <b style="color:var(--text-main); font-size:14px;">${c.name}</b>
-                    <small class="reward-text">${c.reward}</small>
-                    <ul class="ingred-list">${ingreds}</ul>
                     <button class="btn" style="width:100%" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? 'INITIALIZE_HAND_IN' : 'RESOURCES_INSUFFICIENT'}</button>`;
                 grid.appendChild(card);
             }
