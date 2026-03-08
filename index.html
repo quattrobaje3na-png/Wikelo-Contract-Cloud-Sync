@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v2.0.0</title>
+    <title>WIKELO::LOGISTICS_SYNC v2.0.1</title>
     <style>
         :root { 
             --t-orange: #e67e22; 
@@ -295,12 +295,17 @@
             
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
+                // FIX: Fallback for missing inventory entries
                 const data = inventory[ing.id] || { qty: 0, loc: "" };
-                if (data.qty < ing.qty) canCraft = false;
+                const stock = data.qty || 0;
+                
+                if (stock < ing.qty) canCraft = false;
+                
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                const locStr = LOCATIONS[ing.id] || "No Data Available";
-                return `<li class="${data.qty >= ing.qty ? 'status-ready' : 'status-missing'}">
-                    <div>${data.qty}/${ing.qty} ${mat ? mat.name : ing.id}</div>
+                const locStr = LOCATIONS[ing.id] || "Where data unavailable";
+                
+                return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}">
+                    <div>${stock}/${ing.qty} ${mat ? mat.name : ing.id}</div>
                     <span class="where-loc"><span class="where-tag">WHERE:</span>${locStr}</span>
                 </li>`;
             }).join('');
