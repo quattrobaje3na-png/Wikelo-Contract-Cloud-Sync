@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIKELO::LOGISTICS_SYNC v1.8.1</title>
+    <title>WIKELO::LOGISTICS_SYNC v1.8.2</title>
     <style>
         :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
+        /* --- SIDEBAR --- */
         .sidebar { width: 420px; border-right: 2px solid var(--t-orange); padding: 20px; overflow-y: auto; background: #050505; }
         .sync-panel { background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px; }
         .sync-status { display: flex; align-items: center; font-size: 10px; margin-top: 10px; }
@@ -24,10 +25,11 @@
         .inv-item input.loc-input { border-color: #333; color: #888; font-size: 9px; text-transform: uppercase; }
         .inv-item input.loc-input:focus { border-color: var(--t-orange); color: var(--t-orange); }
 
+        /* --- MAIN CONTENT --- */
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 15px; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; border-radius: 2px; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; position: relative; }
         .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
         .card.pinned { border-left: 4px solid var(--t-orange); }
         .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; font-weight: bold; }
@@ -46,8 +48,8 @@
 <div class="sidebar">
     <div class="sync-panel">
         <h2 style="color:var(--t-orange); font-size:12px; margin:0 0 10px 0;">[ CLOUD_SYNC_LOGISTICS ]</h2>
-        <input type="text" id="squad-code" class="btn" style="width:100%; text-align:left; margin-bottom:5px;" placeholder="ENTER_SQUAD_CODE..." onchange="saveConfig()">
-        <input type="text" id="user-handle" class="btn" style="width:100%; text-align:left;" placeholder="ENTER_HANDLE..." onchange="saveConfig()">
+        <input type="text" id="squad-code" class="btn" style="width:100%; text-align:left; margin-bottom:5px;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
+        <input type="text" id="user-handle" class="btn" style="width:100%; text-align:left;" placeholder="HANDLE..." onchange="saveConfig()">
         <div class="sync-status">
             <div id="sync-lamp" class="lamp"></div>
             <span id="sync-text">STATUS: LOCAL_ONLY</span>
@@ -72,33 +74,26 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywgKsYfx5yZP2cgLDlfsKia5hEcbS5LrJ6v4SQtdzRF4CyBGPYtfz_gnTiNbO3gaCxUA/exec";
-    
-    // BAKED DATABASE
+
+    // --- BAKED-IN MASTER DATABASE ---
     const DATABASE = {
         "materials": [
-            {"id":"wikelo-favor", "name":"Wikelo Favor", "cat":"currency"},
-            {"id":"mg-scrip", "name":"MG Scrip", "cat":"currency"},
-            {"id":"polaris-bit", "name":"Polaris Bit", "cat":"currency"},
-            {"id":"carinite-pure", "name":"Carinite (Pure)", "cat":"ores"},
-            {"id":"carinite", "name":"Carinite", "cat":"ores"},
-            {"id":"jaclium", "name":"Jaclium (Ore)", "cat":"ores"},
-            {"id":"saldynium", "name":"Saldynium (Ore)", "cat":"ores"},
-            {"id":"valakkar-pearl-aaa", "name":"Pearl (AAA)", "cat":"creature"},
-            {"id":"valakkar-fang-apex", "name":"Fang (Apex)", "cat":"creature"},
-            {"id":"asd-secure-drive", "name":"ASD Secure Drive", "cat":"tech"},
-            {"id":"comp-board", "name":"DCHS-05 Comp-Board", "cat":"tech"},
-            {"id":"nn-13-cannon", "name":"NN-13 Cannon", "cat":"tech"},
-            {"id":"argo-atls", "name":"Argo ATLS", "cat":"gear"},
-            {"id":"ace-helmet", "name":"Ace Helmet", "cat":"gear"},
-            {"id":"antium-core", "name":"Antium Core", "cat":"gear"},
-            {"id":"antium-helmet", "name":"Antium Helmet", "cat":"gear"},
-            {"id":"antium-legs", "name":"Antium Legs", "cat":"gear"},
-            {"id":"antium-arms", "name":"Antium Arms", "cat":"gear"}
+            {"id":"wikelo-favor","name":"Wikelo Favor","cat":"currency"},{"id":"mg-scrip","name":"MG Scrip","cat":"currency"},{"id":"polaris-bit","name":"Polaris Bit","cat":"currency"},{"id":"council-scrip","name":"Council Scrip","cat":"currency"},
+            {"id":"quantainium","name":"Quantainium","cat":"ores"},{"id":"carinite","name":"Carinite","cat":"ores"},{"id":"carinite-pure","name":"Carinite (Pure)","cat":"ores"},{"id":"jaclium","name":"Jaclium (Ore)","cat":"ores"},{"id":"saldynium","name":"Saldynium (Ore)","cat":"ores"},
+            {"id":"valakkar-pearl-aaa","name":"Irradiated Pearl (AAA)","cat":"creature"},{"id":"valakkar-pearl-aa","name":"Irradiated Pearl (AA)","cat":"creature"},{"id":"valakkar-fang-apex","name":"Fang (Apex)","cat":"creature"},{"id":"valakkar-fang-adult","name":"Fang (Adult)","cat":"creature"},{"id":"valakkar-fang-juvenile","name":"Fang (Juvenile)","cat":"creature"},{"id":"tundra-kopion-horn","name":"Kopion Horn","cat":"creature"},{"id":"yormandi-eye","name":"Yormandi Eye","cat":"creature"},{"id":"yormandi-tongue","name":"Yormandi Tongue","cat":"creature"},
+            {"id":"uee-medal","name":"UEE Medal (Pristine)","cat":"medals"},{"id":"tevarin-marker","name":"Tevarin Marker (Pristine)","cat":"medals"},{"id":"gov-medal","name":"GCA Medal (Pristine)","cat":"medals"},{"id":"artefact-fragment","name":"Artefact Fragment (Pristine)","cat":"medals"},
+            {"id":"asd-secure-drive","name":"ASD Secure Drive","cat":"tech"},{"id":"comp-board","name":"DCHS-05 Comp-Board","cat":"tech"},{"id":"nn-13-cannon","name":"NN-13 Cannon","cat":"tech"},{"id":"rcmbnt-pwl-1","name":"RCMBNT-PWL-1","cat":"tech"},{"id":"rcmbnt-pwl-2","name":"RCMBNT-PWL-2","cat":"tech"},{"id":"rcmbnt-pwl-3","name":"RCMBNT-PWL-3","cat":"tech"},{"id":"rcmbnt-rgl-1","name":"RCMBNT-RGL-1","cat":"tech"},{"id":"rcmbnt-rgl-2","name":"RCMBNT-RGL-2","cat":"tech"},{"id":"rcmbnt-rgl-3","name":"RCMBNT-RGL-3","cat":"tech"},{"id":"rcmbnt-xtl-1","name":"RCMBNT-XTL-1","cat":"tech"},{"id":"rcmbnt-xtl-2","name":"RCMBNT-XTL-2","cat":"tech"},{"id":"rcmbnt-xtl-3","name":"RCMBNT-XTL-3","cat":"tech"},
+            {"id":"parallax-rifle","name":"Parallax Energy AR","cat":"weapons"},{"id":"prism-shotgun","name":"Prism Laser Shotgun","cat":"weapons"},{"id":"zenith-sniper","name":"Zenith Sniper Rifle","cat":"weapons"},{"id":"fresnel-lmg","name":"Fresnel Energy LMG","cat":"weapons"},{"id":"boomtube-launcher","name":"Boomtube Launcher","cat":"weapons"},{"id":"tripledown-pistol","name":"Tripledown Pistol","cat":"weapons"},
+            {"id":"argo-atls","name":"Argo ATLS","cat":"gear"},{"id":"ace-helmet","name":"Ace Helmet","cat":"gear"},{"id":"vanduul-plating","name":"Vanduul Plating","cat":"gear"},{"id":"vanduul-metal","name":"Vanduul Metal","cat":"gear"},{"id":"antium-core","name":"Antium Core","cat":"gear"},{"id":"antium-helmet","name":"Antium Helmet","cat":"gear"},{"id":"antium-legs","name":"Antium Legs","cat":"gear"},{"id":"antium-arms","name":"Antium Arms","cat":"gear"},{"id":"geist-core","name":"Geist Core","cat":"gear"},{"id":"geist-helmet","name":"Geist Helmet","cat":"gear"},{"id":"geist-legs","name":"Geist Legs","cat":"gear"},{"id":"geist-arms","name":"Geist Arms","cat":"gear"},{"id":"geist-backpack","name":"Geist Backpack","cat":"gear"},{"id":"strata-core","name":"Strata Core","cat":"gear"},{"id":"strata-helmet","name":"Strata Helmet","cat":"gear"},{"id":"strata-arms","name":"Strata Arms","cat":"gear"},{"id":"strata-legs","name":"Strata Legs","cat":"gear"},{"id":"strata-backpack","name":"Strata Backpack","cat":"gear"},{"id":"corbel-core","name":"Corbel Core","cat":"gear"},{"id":"corbel-helmet","name":"Corbel Helmet","cat":"gear"},{"id":"corbel-legs","name":"Corbel Legs","cat":"gear"},{"id":"corbel-arms","name":"Corbel Arms","cat":"gear"},{"id":"corbel-backpack","name":"Corbel Backpack","cat":"gear"},{"id":"palatino-core","name":"Palatino Core","cat":"gear"},{"id":"palatino-helmet","name":"Palatino Helmet","cat":"gear"},{"id":"palatino-legs","name":"Palatino Legs","cat":"gear"},{"id":"palatino-arms","name":"Palatino Arms","cat":"gear"},{"id":"palatino-backpack","name":"Palatino Backpack","cat":"gear"},{"id":"testudo-core","name":"Testudo Core","cat":"gear"},{"id":"testudo-helmet","name":"Testudo Helmet","cat":"gear"},{"id":"testudo-arms","name":"Testudo Arms","cat":"gear"},{"id":"testudo-legs","name":"Testudo Legs","cat":"gear"},{"id":"testudo-backpack","name":"Testudo Backpack","cat":"gear"}
         ],
         "contracts": [
-            {"id":"ana-endro", "cat":"armor", "name":"Armor with horn and string", "reward":"Ana Armor Endro Set", "ingredients":[{"id":"carinite-pure", "qty":1}, {"id":"antium-core", "qty":1}, {"id":"antium-helmet", "qty":1}, {"id":"antium-legs", "qty":1}, {"id":"antium-arms", "qty":1}]},
-            {"id":"atls-ikti", "cat":"vehicle", "name":"Make ATLS shoot", "reward":"ATLS IKTI", "ingredients":[{"id":"argo-atls", "qty":1}, {"id":"wikelo-favor", "qty":2}, {"id":"valakkar-fang-apex", "qty":5}, {"id":"nn-13-cannon", "qty":2}]},
-            {"id":"polaris-special", "cat":"ship", "name":"Now make Polaris.", "reward":"RSI Polaris Wikelo Special", "ingredients":[{"id":"wikelo-favor", "qty":50}, {"id":"polaris-bit", "qty":15}, {"id":"asd-secure-drive", "qty":15}, {"id":"comp-board", "qty":10}, {"id":"carinite-pure", "qty":15}]}
+            {"id":"ana-endro","cat":"armor","name":"Armor horn/string","reward":"Ana Armor Endro Set","ingredients":[{"id":"carinite-pure","qty":1},{"id":"antium-core","qty":1},{"id":"antium-helmet","qty":1},{"id":"antium-legs","qty":1},{"id":"antium-arms","qty":1}]},
+            {"id":"bokto-armor","cat":"armor","name":"Glowy armor","reward":"Bokto Armor Set","ingredients":[{"id":"valakkar-pearl-aaa","qty":1},{"id":"antium-core","qty":1},{"id":"antium-helmet","qty":1},{"id":"antium-legs","qty":1},{"id":"antium-arms","qty":1}]},
+            {"id":"geist-snow","cat":"armor","name":"Snow Suit","reward":"Geist Snow Camo Set","ingredients":[{"id":"asd-secure-drive","qty":4},{"id":"geist-helmet","qty":1},{"id":"geist-core","qty":1},{"id":"geist-legs","qty":1},{"id":"geist-arms","qty":1},{"id":"geist-backpack","qty":1}]},
+            {"id":"strata-heatwave","cat":"armor","name":"Lava Suit","reward":"Strata Heatwave Set","ingredients":[{"id":"carinite","qty":30},{"id":"rcmbnt-pwl-1","qty":4},{"id":"rcmbnt-pwl-2","qty":4},{"id":"rcmbnt-pwl-3","qty":4},{"id":"strata-core","qty":1},{"id":"strata-arms","qty":1},{"id":"strata-legs","qty":1},{"id":"strata-helmet","qty":1},{"id":"strata-backpack","qty":1}]},
+            {"id":"atls-ikti","cat":"vehicle","name":"ATLS shoot","reward":"ATLS IKTI","ingredients":[{"id":"argo-atls","qty":1},{"id":"wikelo-favor","qty":2},{"id":"valakkar-fang-apex","qty":5},{"id":"nn-13-cannon","qty":2}]},
+            {"id":"polaris-special","cat":"ship","name":"Polaris build","reward":"RSI Polaris Special","ingredients":[{"id":"wikelo-favor","qty":50},{"id":"polaris-bit","qty":15},{"id":"asd-secure-drive","qty":15},{"id":"comp-board","qty":10},{"id":"carinite-pure","qty":15}]},
+            {"id":"idris-special","cat":"ship","name":"Special Idris","reward":"Aegis Idris-P Special","ingredients":[{"id":"wikelo-favor","qty":50},{"id":"polaris-bit","qty":50},{"id":"comp-board","qty":50},{"id":"carinite","qty":50},{"id":"valakkar-fang-apex","qty":50},{"id":"mg-scrip","qty":50},{"id":"ace-helmet","qty":50},{"id":"valakkar-pearl-aaa","qty":30},{"id":"uee-medal","qty":30},{"id":"asd-secure-drive","qty":30},{"id":"carinite-pure","qty":30}]}
         ]
     };
 
@@ -125,6 +120,7 @@
         renderInventoryTabs();
         updateDisplay();
         setInterval(syncWithCloud, 15000);
+        syncWithCloud();
     }
 
     function renderInventoryTabs() {
@@ -145,11 +141,7 @@
                 const data = inventory[mat.id] || { qty: 0, loc: "" };
                 const item = document.createElement('div');
                 item.className = 'inv-item';
-                item.innerHTML = `
-                    <span>${mat.name}</span>
-                    <input type="number" value="${data.qty}" onchange="updateStock('${mat.id}', 'qty', this.value)">
-                    <input type="text" class="loc-input" value="${data.loc}" placeholder="LOC" onchange="updateStock('${mat.id}', 'loc', this.value)">
-                `;
+                item.innerHTML = `<span>${mat.name}</span><input type="number" value="${data.qty}" onchange="updateStock('${mat.id}', 'qty', this.value)"><input type="text" class="loc-input" value="${data.loc}" placeholder="LOC" onchange="updateStock('${mat.id}', 'loc', this.value)">`;
                 content.appendChild(item);
             });
             container.appendChild(header);
@@ -210,16 +202,8 @@
     function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
     function toggleTrack(id) { const idx = tracked.indexOf(id); if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); updateDisplay(); }
     function setFilter(m) { filterMode = m; updateDisplay(); }
-    function execute(id) { 
-        const c = CONTRACTS.find(x => x.id === id); 
-        c.ingredients.forEach(ing => { if(inventory[ing.id]) inventory[ing.id].qty -= ing.qty; }); 
-        completed.push(id); 
-        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory)); 
-        localStorage.setItem('wikelo-completed', JSON.stringify(completed)); 
-        renderInventoryTabs(); updateDisplay(); syncWithCloud(); 
-    }
+    function execute(id) { const c = CONTRACTS.find(x => x.id === id); c.ingredients.forEach(ing => { if(inventory[ing.id]) inventory[ing.id].qty -= ing.qty; }); completed.push(id); localStorage.setItem('wikelo-inventory', JSON.stringify(inventory)); localStorage.setItem('wikelo-completed', JSON.stringify(completed)); renderInventoryTabs(); updateDisplay(); syncWithCloud(); }
     function resetAll() { if(confirm("WIPE DATA?")) { localStorage.clear(); location.reload(); } }
-    
     window.onload = init;
 </script>
 </body>
