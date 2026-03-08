@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v1.9.7</title>
+    <title>WIKELO::LOGISTICS_SYNC v1.9.8</title>
     <style>
         :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
         * { box-sizing: border-box; } 
@@ -53,7 +53,7 @@
         .lamp { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #333; transition: 0.3s; }
         .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
         
-        /* --- MAIN CONTENT & FLUSH HEADER --- */
+        /* --- MAIN CONTENT & STICKY HEADER --- */
         .main-content { 
             flex: 1; 
             display: flex;
@@ -109,6 +109,7 @@
             border-left: 1px solid #444;
             padding-left: 5px;
             margin-bottom: 8px;
+            line-height: 1.2;
         }
 
         /* --- MOBILE RESPONSIVE --- */
@@ -178,39 +179,9 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIb6Ptkl9cSbwpwg79jnfXaFWVrcYu4FJB6P6hD1lMrZi_y2Zyp58WM5VxQchktMle5A/exec";
     
-    // WIKI LOCATIONS MAPPING
-    const LOCATIONS = {
-        "wikelo-favor": "Wikelo Emporium - Mission Reward",
-        "mg-scrip": "Mercenary/Bunker Missions",
-        "polaris-bit": "Wikelo Emporium - Quantainium Trade",
-        "council-scrip": "Council Missions (Pyro)",
-        "quantainium": "Lyria Mining / Aaron Halo",
-        "carinite": "Align & Mine Event - Hathor Caves",
-        "carinite-pure": "Align & Mine Event - Rare Deposits",
-        "jaclium": "MicroTech / Pyro Mining",
-        "saldynium": "Daymar / Pyro Mining",
-        "valakkar-pearl-aaa": "Stormbreaker Raid - Apex Loot",
-        "valakkar-fang-apex": "Stormbreaker Raid - Apex Loot",
-        "valakkar-pearl-aa": "Lazarus Complexes (Pyro I)",
-        "valakkar-fang-adult": "Lazarus Complexes - Adult Worms",
-        "tundra-kopion-horn": "MicroTech - Boreal Meadows",
-        "irradiated-kopion-horn": "Pyro - Contested Zones",
-        "yormandi-eye": "Onyx Site-B - Plasma Beast Boss",
-        "yormandi-tongue": "Onyx Site-B - Plasma Beast Boss",
-        "uee-medal": "Patrol Mission Blue Crates",
-        "tevarin-marker": "Pyro Bunkers / Tevarin Sites",
-        "gov-medal": "GCA Crates at Outposts",
-        "artefact-fragment": "Excavation Sites / Daymar Caves",
-        "asd-secure-drive": "ASD Investigation Missions (Onyx)",
-        "comp-board": "Ruin Station Vault / Electronics salvaged",
-        "nn-13-cannon": "Onyx Facilities / Salvaged ATLS",
-        "vanduul-plating": "Salvage - Vanduul Wrecks",
-        "vanduul-metal": "Salvage - Vanduul Wrecks",
-        "ace-helmet": "Combat - Elite Pilot Loot"
-    };
-
     let MATERIALS = [];
     let CONTRACTS = [];
+    let LOCATIONS = {};
     let inventory = {};
     let completed = [];
     let tracked = [];
@@ -228,23 +199,36 @@
 
     async function loadSystemData() {
         try {
-            const response = await fetch('wikelo-data.json');
-            if (!response.ok) throw new Error("FETCH_FAILED");
-            const data = await response.json();
+            // Fetch Recipe Data
+            const dataResponse = await fetch('wikelo-data.json');
+            if (!dataResponse.ok) throw new Error("WIKELO_DATA_MISSING");
+            const data = await dataResponse.json();
+            
+            // Fetch Location Data
+            const locResponse = await fetch('locations.json');
+            if (locResponse.ok) {
+                LOCATIONS = await locResponse.json();
+            }
+
             MATERIALS = data.materials || [];
             CONTRACTS = data.contracts || [];
+
             inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
             completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
             tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
+            
             document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
             document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
+            
             renderInventoryTabs();
             updateDisplay();
+            
             document.getElementById('sync-text').innerText = "STATUS: ONLINE";
             setInterval(syncWithCloud, 15000);
             syncWithCloud();
         } catch (e) {
-            document.getElementById('sync-text').innerText = "STATUS: JSON_LOAD_ERROR";
+            document.getElementById('sync-text').innerText = "STATUS: LOAD_ERROR";
+            console.error(e);
         }
     }
 
@@ -303,18 +287,21 @@
         const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
         let readyCount = 0;
+        
         const sorted = [...CONTRACTS].sort((a,b) => (tracked.includes(b.id) - tracked.includes(a.id)) || a.name.localeCompare(b.name));
+
         sorted.forEach(c => {
             const isDone = completed.includes(c.id);
             const isPinned = tracked.includes(c.id);
             if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
+
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
                 const data = inventory[ing.id] || { qty: 0, loc: "" };
                 const qtyReq = ing.qty || 0;
                 if (data.qty < qtyReq) canCraft = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                const wikiLoc = LOCATIONS[ing.id] || "No Data";
+                const wikiLoc = LOCATIONS[ing.id] || "Location Unknown";
                 return `
                     <li class="${data.qty >= qtyReq ? 'status-ready' : 'status-missing'}">
                         ${data.qty}/${qtyReq} ${mat ? mat.name : ing.id} ${data.loc ? '<span style="color:#666; font-size:9px;">['+data.loc+']</span>' : ''}
