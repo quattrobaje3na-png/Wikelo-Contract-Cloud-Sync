@@ -3,29 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIKELO::LOGISTICS_SYNC v1.9.0</title>
+    <title>WIKELO::LOGISTICS_SYNC v1.9.1</title>
     <style>
         :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
         .sidebar { width: 420px; border-right: 2px solid var(--t-orange); padding: 20px; overflow-y: auto; background: #050505; }
         .sync-panel { background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px; }
         .sync-status { display: flex; align-items: center; font-size: 10px; margin-top: 10px; }
         .lamp { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #333; transition: 0.3s; }
         .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        
         .tab-header { background: #111; border: 1px solid var(--border); color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; text-transform: uppercase; font-weight: bold; }
         .tab-content { display: none; padding: 5px; border: 1px solid #222; background: #080808; border-top: none; }
         .tab-content.open { display: block; }
+        
         .inv-item { display: grid; grid-template-columns: 1fr 60px 100px; gap: 8px; align-items: center; padding: 6px 8px; border-bottom: 1px solid #111; }
-        .inv-item span { font-size: 10px; color: #aaa; }
+        .inv-item span { font-size: 10px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .inv-item input { background: #000; border: 1px solid var(--t-orange); color: var(--t-orange); text-align: center; font-size: 11px; outline: none; }
+        .inv-item input.loc-input { border-color: #333; color: #888; font-size: 9px; text-transform: uppercase; }
+
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 15px; }
         .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; position: relative; }
         .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
+        .card.pinned { border-left: 4px solid var(--t-orange); }
+        .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; font-weight: bold; }
+        .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
+        .loc-tag { color: #666; font-size: 9px; margin-left: 5px; }
         .status-ready { color: var(--success); }
         .status-missing { color: var(--error); }
+        
         .btn { background: transparent; border: 1px solid var(--t-orange); color: var(--t-orange); padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold; font-family: monospace; }
+        .btn:hover:not(:disabled) { background: rgba(255,140,0,0.1); }
         .active-filter { background: var(--t-orange) !important; color: #000 !important; }
     </style>
 </head>
@@ -38,7 +49,7 @@
         <input type="text" id="user-handle" class="btn" style="width:100%; text-align:left;" placeholder="HANDLE..." onchange="saveConfig()">
         <div class="sync-status">
             <div id="sync-lamp" class="lamp"></div>
-            <span id="sync-text">STATUS: LOADING_DATABASE...</span>
+            <span id="sync-text">STATUS: CONNECTING...</span>
         </div>
     </div>
     <div id="inventory-tabs"></div>
@@ -50,9 +61,9 @@
         <h1 id="stats-header">WIKELO::MANIFEST</h1>
         <div style="display:flex; gap:8px; align-items:center;">
             <input type="text" id="manifest-search" class="btn" style="width:180px; text-align:left;" placeholder="SEARCH..." oninput="updateDisplay()">
-            <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+            <button class="btn" onclick="setFilter('all')">ALL</button>
             <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
-            <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
+            <button class="btn" onclick="setFilter('tracked')">PINNED</button>
         </div>
     </div>
     <div id="contract-grid" class="grid"></div>
@@ -84,19 +95,15 @@
     async function loadSystemData() {
         try {
             const response = await fetch('wikelo-data.json');
-            if (!response.ok) throw new Error("JSON Fetch Failed");
+            if (!response.ok) throw new Error("FETCH_FAILED");
             const data = await response.json();
             
-            MATERIALS = data.materials;
-            CONTRACTS = data.contracts;
+            MATERIALS = data.materials || [];
+            CONTRACTS = data.contracts || [];
 
-            const savedInv = localStorage.getItem('wikelo-inventory');
-            const savedComp = localStorage.getItem('wikelo-completed');
-            const savedTrack = localStorage.getItem('wikelo-tracked');
-            
-            inventory = savedInv ? JSON.parse(savedInv) : {};
-            completed = savedComp ? JSON.parse(savedComp) : [];
-            tracked = savedTrack ? JSON.parse(savedTrack) : [];
+            inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
+            completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
+            tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
             
             document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
             document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
@@ -106,8 +113,9 @@
             
             document.getElementById('sync-text').innerText = "STATUS: ONLINE";
             setInterval(syncWithCloud, 15000);
+            syncWithCloud();
         } catch (e) {
-            document.getElementById('sync-text').innerText = "STATUS: JSON_ERROR";
+            document.getElementById('sync-text').innerText = "STATUS: JSON_LOAD_ERROR";
             console.error("Critical Load Failure:", e);
         }
     }
@@ -174,7 +182,9 @@
         grid.innerHTML = '';
         let readyCount = 0;
         
-        CONTRACTS.forEach(c => {
+        const sorted = [...CONTRACTS].sort((a,b) => (tracked.includes(b.id) - tracked.includes(a.id)) || a.name.localeCompare(b.name));
+
+        sorted.forEach(c => {
             const isDone = completed.includes(c.id);
             const isPinned = tracked.includes(c.id);
             if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
@@ -182,16 +192,17 @@
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
                 const data = inventory[ing.id] || { qty: 0, loc: "" };
-                if (data.qty < ing.qty) canCraft = false;
+                const qtyReq = ing.qty || 0;
+                if (data.qty < qtyReq) canCraft = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                return `<li class="${data.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${data.qty}/${ing.qty} ${mat ? mat.name : ing.id}</li>`;
+                return `<li class="${data.qty >= qtyReq ? 'status-ready' : 'status-missing'}">${data.qty}/${qtyReq} ${mat ? mat.name : ing.id} ${data.loc ? '<span class="loc-tag">['+data.loc+']</span>' : ''}</li>`;
             }).join('');
 
             if (canCraft && !isDone) readyCount++;
             if (filterMode === 'all' || (filterMode === 'craftable' && canCraft && !isDone) || (filterMode === 'tracked' && isPinned)) {
                 const card = document.createElement('div');
-                card.className = `card ${canCraft && !isDone ? 'craftable' : ''}`;
-                card.innerHTML = `<b>${c.name}</b><br><small>${c.reward}</small><ul style="font-size:10px;">${ingreds}</ul>`;
+                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isPinned ? 'pinned' : ''}`;
+                card.innerHTML = `<div style="display:flex; justify-content:space-between;"><span style="font-size:9px; color:#555; text-transform:uppercase;">${c.cat}</span><button class="btn" style="border:none; color:${isPinned ? 'var(--t-orange)' : '#444'}" onclick="toggleTrack('${c.id}')">${isPinned ? '★' : '☆'}</button></div><b style="color:#fff;">${c.name}</b><br><small class="reward-text">REWARD: ${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN ]' : '[ INCOMPLETE ]'}</button>`;
                 grid.appendChild(card);
             }
         });
@@ -199,7 +210,16 @@
     }
 
     function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
+    function toggleTrack(id) { const idx = tracked.indexOf(id); if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); updateDisplay(); }
     function setFilter(m) { filterMode = m; updateDisplay(); }
+    function execute(id) { 
+        const c = CONTRACTS.find(x => x.id === id); 
+        c.ingredients.forEach(ing => { if(inventory[ing.id]) inventory[ing.id].qty -= ing.qty; }); 
+        completed.push(id); 
+        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory)); 
+        localStorage.setItem('wikelo-completed', JSON.stringify(completed)); 
+        renderInventoryTabs(); updateDisplay(); syncWithCloud(); 
+    }
     function resetAll() { if(confirm("Wipe?")) { localStorage.clear(); location.reload(); } }
     window.onload = loadSystemData;
 </script>
