@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v2.6.0</title>
+    <title>WIKELO::LOGISTICS_SYNC v2.6.1</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -13,7 +13,7 @@
             --success: #00FF00;
             --error: #FF0000;
             --text-main: #FFFFFF;
-            --text-dim: #BBBBBB; /* Brightened from previous grey */
+            --text-dim: #BBBBBB;
         }
         
         * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--t-orange) #000; } 
@@ -76,6 +76,11 @@
         .del-mini { color: var(--error); border: 2px solid var(--error); background: transparent; font-size: 11px; cursor: pointer; padding: 6px 10px; font-weight: bold; }
         .del-mini:hover { background: var(--error); color: #000; }
 
+        /* --- SYNC LAMP --- */
+        .sync-status { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--t-orange); font-weight: bold; }
+        .lamp { width: 8px; height: 8px; border-radius: 50%; background: #222; border: 1px solid #444; transition: 0.3s; }
+        .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); border-color: #fff; }
+
         /* --- MAIN CONTENT HEADER --- */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .header-controls { 
@@ -130,10 +135,14 @@
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 15px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V2.6 ]</h2>
+        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V2.6.1 ]</h2>
         <div style="display:flex; gap:12px;">
             <input type="text" id="squad-code" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
             <input type="text" id="user-handle" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
+        </div>
+        <div class="sync-status">
+            <div id="sync-lamp" class="lamp"></div>
+            <span>LINK_STATUS: STABLE</span>
         </div>
     </div>
 
@@ -194,6 +203,10 @@
             renderTabs();
             renderManifest();
             updateDisplay();
+
+            // Start Sync Loop
+            setInterval(syncWithCloud, 15000);
+            syncWithCloud();
         } catch (e) { console.error(e); }
     }
 
@@ -243,7 +256,9 @@
         });
         localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
         qI.value = ''; lI.value = '';
-        renderManifest(); updateDisplay();
+        renderManifest(); 
+        updateDisplay();
+        syncWithCloud();
     }
 
     function renderManifest() {
@@ -262,7 +277,36 @@
     function removeEntry(uid) {
         manifest = manifest.filter(e => e.uid !== uid);
         localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
-        renderManifest(); updateDisplay();
+        renderManifest(); 
+        updateDisplay();
+        syncWithCloud();
+    }
+
+    async function syncWithCloud() {
+        const squad = document.getElementById('squad-code').value;
+        const handle = document.getElementById('user-handle').value;
+        if (!squad || !handle) return;
+        
+        try {
+            const payload = { 
+                action: "sync", 
+                squadCode: squad, 
+                handle: handle, 
+                manifest: JSON.stringify(manifest) 
+            };
+
+            await fetch(SCRIPT_URL, { 
+                method: "POST", 
+                mode: "no-cors", 
+                body: JSON.stringify(payload) 
+            });
+
+            // Trigger visual lamp pulse
+            const lamp = document.getElementById('sync-lamp');
+            lamp.classList.add('active');
+            setTimeout(() => lamp.classList.remove('active'), 1500);
+
+        } catch (e) { console.error("CLOUD_SYNC_ERROR", e); }
     }
 
     function updateDisplay() {
@@ -341,9 +385,10 @@
     function saveConfig() { 
         localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); 
         localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); 
+        syncWithCloud();
     }
 
-    function resetAll() { if(confirm("PERMANENT_PURGE_MANIFEST?")) { manifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); renderManifest(); updateDisplay(); } }
+    function resetAll() { if(confirm("PERMANENT_PURGE_MANIFEST?")) { manifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); renderManifest(); updateDisplay(); syncWithCloud(); } }
     window.onload = loadSystemData;
 </script>
 </body>
