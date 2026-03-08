@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v1.9.5</title>
+    <title>WIKELO::LOGISTICS_SYNC v1.9.6</title>
     <style>
         :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
         
@@ -54,13 +54,14 @@
         .lamp { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #333; transition: 0.3s; }
         .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
         
-        /* --- MAIN CONTENT & STICKY HEADER --- */
+        /* --- MAIN CONTENT & FIXED HEADER --- */
         .main-content { 
             flex: 1; 
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Contains the scroll to the grid only */
+            overflow: hidden; 
             position: relative; 
+            background: var(--bg);
         }
 
         .header-controls { 
@@ -69,10 +70,10 @@
             align-items: center; 
             padding: 20px;
             border-bottom: 2px solid var(--t-orange); 
-            background: var(--bg); 
+            background: var(--bg); /* Solid black to block scrolling content */
             z-index: 100; 
             width: 100%;
-            margin: 0; /* Flush to top */
+            margin: 0; 
             flex-shrink: 0;
         }
         
@@ -87,6 +88,25 @@
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); 
             gap: 15px; 
         }
+
+        /* --- THE PIN STAR --- */
+        .pin-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 24px; /* Big enough to see */
+            line-height: 1;
+            padding: 0;
+            transition: transform 0.1s ease;
+        }
+        .pin-btn.active {
+            color: var(--t-orange);
+            text-shadow: 0 0 8px var(--t-orange);
+        }
+        .pin-btn.inactive {
+            color: #222; /* Dim but visible */
+        }
+        .pin-btn:hover { transform: scale(1.2); }
 
         /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 900px) {
@@ -169,10 +189,7 @@
         "medals": "Artifacts & Medals",
         "tech": "Tech & RCMBNTs",
         "weapons": "Weapons",
-        "gear": "Gear & Vehicles",
-        "armor": "Armor Sets",
-        "ship": "Ship Specials",
-        "vehicle": "Vehicle Colors"
+        "gear": "Gear & Vehicles"
     };
 
     async function loadSystemData() {
@@ -269,7 +286,17 @@
             if (filterMode === 'all' || (filterMode === 'craftable' && canCraft && !isDone) || (filterMode === 'tracked' && isPinned)) {
                 const card = document.createElement('div');
                 card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isPinned ? 'pinned' : ''}`;
-                card.innerHTML = `<div style="display:flex; justify-content:space-between;"><span style="font-size:9px; color:#555;">${c.cat}</span><button class="btn" style="border:none; color:${isPinned ? 'var(--t-orange)' : '#444'}" onclick="toggleTrack('${c.id}')">${isPinned ? '★' : '☆'}</button></div><b style="color:#fff;">${c.name}</b><br><small class="reward-text">REWARD: ${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN ]' : '[ INCOMPLETE ]'}</button>`;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items: flex-start;">
+                        <span style="font-size:9px; color:#555;">${c.cat}</span>
+                        <button class="pin-btn ${isPinned ? 'active' : 'inactive'}" onclick="toggleTrack('${c.id}')">
+                            ★
+                        </button>
+                    </div>
+                    <b style="color:#fff; display:block; margin-top: -10px;">${c.name}</b>
+                    <small class="reward-text">REWARD: ${c.reward}</small>
+                    <ul class="ingred-list">${ingreds}</ul>
+                    <button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN ]' : '[ INCOMPLETE ]'}</button>`;
                 grid.appendChild(card);
             }
         });
@@ -277,7 +304,13 @@
     }
 
     function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
-    function toggleTrack(id) { const idx = tracked.indexOf(id); if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); updateDisplay(); }
+    function toggleTrack(id) { 
+        const idx = tracked.indexOf(id); 
+        if(idx > -1) tracked.splice(idx, 1); 
+        else tracked.push(id); 
+        localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); 
+        updateDisplay(); 
+    }
     function setFilter(m) { 
         filterMode = m; 
         document.querySelectorAll('.header-controls .btn').forEach(b => b.classList.remove('active-filter'));
