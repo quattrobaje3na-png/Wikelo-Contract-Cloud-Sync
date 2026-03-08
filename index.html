@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SYNC v2.2.0</title>
+    <title>WIKELO::LOGISTICS_SYNC v2.2.2</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -19,43 +19,45 @@
         * { box-sizing: border-box; } 
         body { background: var(--bg); color: var(--text-main); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- SIDEBAR --- */
-        .sidebar { width: 440px; border-right: 2px solid var(--border); display: flex; flex-direction: column; background: var(--bg); flex-shrink: 0; }
-        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 15px; border-bottom: 2px solid var(--border); }
+        /* --- SIDEBAR RE-STRUCTURE --- */
+        .sidebar { width: 480px; border-right: 2px solid var(--border); display: flex; flex-direction: column; background: var(--bg); flex-shrink: 0; height: 100vh; }
+        .sidebar-header { padding: 15px; border-bottom: 2px solid var(--border); background: #0a0a0a; }
+        .sidebar-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar-scroll-top { height: 50%; overflow-y: auto; padding: 15px; border-bottom: 2px solid var(--border); background: #050505; }
+        .manifest-zone { height: 50%; background: #000; overflow-y: auto; padding: 15px; position: relative; }
 
-        /* --- TAB STYLING --- */
-        .tab-header { border: 1px solid #333; color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 10px; margin-top: 5px; text-transform: uppercase; background: #0a0a0a; }
+        /* TAB STYLING */
+        .tab-header { border: 1px solid #333; color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 10px; margin-top: 5px; text-transform: uppercase; background: #000; }
         .tab-content { display: none; padding: 5px; border: 1px solid #222; border-top: none; background: #050505; }
         .tab-content.open { display: block; }
 
-        /* --- INPUT ROW --- */
-        .input-row { display: grid; grid-template-columns: 1fr 45px 70px 40px; gap: 4px; align-items: center; padding: 8px 4px; border-bottom: 1px solid #111; }
-        .input-row span { font-size: 10px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .input-row input { background: #000; border: 1px solid #333; color: #fff; padding: 4px; font-size: 10px; width: 100%; outline: none; }
-        .input-row input:focus { border-color: var(--t-orange); }
-        .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 22px; font-size: 12px; }
+        /* INPUT ROWS */
+        .input-row { display: grid; grid-template-columns: 1fr 50px 80px 45px; gap: 6px; align-items: center; padding: 10px 4px; border-bottom: 1px solid #111; }
+        .input-row span { font-size: 11px; color: #fff; }
+        .input-row input { background: #000; border: 1px solid #444; color: #fff; padding: 6px; font-size: 11px; width: 100%; outline: none; }
+        .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 28px; }
 
-        /* --- MANIFEST AREA --- */
-        .manifest-zone { height: 280px; background: #080808; overflow-y: auto; padding: 15px; border-top: 1px solid #222; }
-        .manifest-entry { background: #000; border: 1px solid #222; padding: 8px; margin-bottom: 6px; display: grid; grid-template-columns: 1fr auto; gap: 5px; }
-        .m-info b { color: var(--t-orange); font-size: 11px; }
-        .m-info div { font-size: 9px; color: #555; margin-top: 2px; }
-        .m-ctrls { display: flex; flex-direction: column; gap: 4px; }
-        .del-mini { color: var(--error); border: 1px solid var(--error); background: transparent; font-size: 8px; cursor: pointer; padding: 2px; }
+        /* MANIFEST ENTRIES (Left Sidebar) */
+        .manifest-entry { background: #0a0a0a; border: 1px solid #333; padding: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+        .m-info b { color: var(--t-orange); font-size: 11px; display: block; }
+        .m-info span { font-size: 9px; color: #666; }
 
-        /* --- MAIN CONTENT --- */
+        /* RECIPE CARDS (Right Side) */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; border-bottom: 2px solid var(--border); }
+        .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; border-bottom: 2px solid var(--border); background: #000; }
         .scroll-area { flex: 1; overflow-y: auto; padding: 25px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 25px; }
 
-        .card { background: var(--card); border: 1px solid var(--border); padding: 18px; display: flex; flex-direction: column; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 20px; }
         .card.craftable { border-top: 5px solid var(--success); }
         .ingred-list { font-size: 12px; list-style: none; padding: 0; margin: 12px 0; }
-        .ingred-list li { margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .status-ready { color: var(--success); }
-        .status-missing { color: var(--error); }
+        .ingred-list > li { margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
         
+        /* Authority / Logistics Breakdown inside Recipes */
+        .authority-list { font-size: 9px; margin-top: 5px; background: rgba(255,140,0,0.05); padding: 5px; border-left: 1px solid var(--t-orange); }
+        .auth-entry { display: flex; justify-content: space-between; color: #888; margin-bottom: 2px; }
+        .auth-entry b { color: #aaa; }
+
         .btn { background: transparent; border: 1px solid var(--border); color: var(--t-orange); padding: 8px 15px; cursor: pointer; font-size: 10px; font-weight: bold; }
         .btn:hover { background: var(--t-orange); color: #000; }
     </style>
@@ -63,29 +65,30 @@
 <body>
 
 <div class="sidebar">
-    <div style="padding:15px; border-bottom:1px solid #222;">
-        <h2 style="color:var(--t-orange); font-size:11px; margin:0 0 10px 0;">[ LOGISTICS_SYNC ]</h2>
-        <div style="display:flex; gap:5px;">
-            <input type="text" id="squad-code" style="background:#000; border:1px solid #333; color:#aaa; padding:5px; font-size:10px; width:50%;" placeholder="SQUAD_CODE" onchange="saveConfig()">
-            <input type="text" id="user-handle" style="background:#000; border:1px solid #333; color:#aaa; padding:5px; font-size:10px; width:50%;" placeholder="HANDLE" onchange="saveConfig()">
+    <div class="sidebar-header">
+        <h2 style="color:var(--t-orange); font-size:12px; margin:0 0 10px 0;">[ LOGISTICS_SYNC ]</h2>
+        <div style="display:flex; gap:8px;">
+            <input type="text" id="squad-code" style="background:#000; border:1px solid #444; color:#fff; padding:8px; font-size:11px; width:50%;" placeholder="SQUAD_CODE" onchange="saveConfig()">
+            <input type="text" id="user-handle" style="background:#000; border:1px solid #444; color:#fff; padding:8px; font-size:11px; width:50%;" placeholder="HANDLE" onchange="saveConfig()">
         </div>
     </div>
 
-    <div class="sidebar-scroll" id="inventory-tabs">
+    <div class="sidebar-split">
+        <div class="sidebar-scroll-top" id="inventory-tabs"></div>
+        <div class="manifest-zone" id="manifest-list">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:5px;">
+                <h3 style="font-size:11px; color:var(--t-orange); margin:0;">[ ACTIVE_MANIFEST ]</h3>
+            </div>
         </div>
-
-    <div class="manifest-zone" id="manifest-list">
-        <h3 style="font-size:10px; color:#444; margin-top:0;">[ ACTIVE_MANIFEST ]</h3>
-        </div>
+    </div>
 </div>
 
 <div class="main-content">
     <div class="header-controls">
-        <h1 id="stats-header" style="margin:0; font-size: 14px; color:#fff;">MANIFEST // <span style="color:var(--t-orange);">LOADING...</span></h1>
-        <div style="display:flex; gap:8px;">
-            <button class="btn" onclick="setFilter('craftable')">READY</button>
-            <button class="btn" onclick="setFilter('all')">ALL</button>
-            <button class="btn" style="border-color:var(--error); color:var(--error);" onclick="resetAll()">PURGE</button>
+        <h1 id="stats-header" style="margin:0; font-size: 15px;">MANIFEST // READY: <span style="color:var(--t-orange);">0</span></h1>
+        <div style="display:flex; gap:10px;">
+            <button class="btn" onclick="setFilter('craftable')">SHOW_READY</button>
+            <button class="btn" onclick="setFilter('all')">SHOW_ALL</button>
         </div>
     </div>
     <div class="scroll-area">
@@ -94,8 +97,6 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIb6Ptkl9cSbwpwg79jnfXaFWVrcYu4FJB6P6hD1lMrZi_y2Zyp58WM5VxQchktMle5A/exec";
-    
     let MATERIALS = [];
     let CONTRACTS = [];
     let LOCATIONS = {};
@@ -119,7 +120,6 @@
             renderTabs();
             renderManifest();
             updateDisplay();
-            setInterval(syncWithCloud, 15000);
         } catch (e) { console.error(e); }
     }
 
@@ -131,7 +131,6 @@
         Object.entries(cats).forEach(([key, label]) => {
             const mats = MATERIALS.filter(m => m.cat === key);
             if (mats.length === 0) return;
-
             const header = document.createElement('div');
             header.className = 'tab-header';
             header.innerHTML = `<span>${label}</span><span>+</span>`;
@@ -140,18 +139,12 @@
                 c.classList.toggle('open');
                 header.querySelector('span:last-child').innerText = c.classList.contains('open') ? '-' : '+';
             };
-
             const content = document.createElement('div');
             content.className = 'tab-content';
             mats.forEach(mat => {
                 const row = document.createElement('div');
                 row.className = 'input-row';
-                row.innerHTML = `
-                    <span>${mat.name}</span>
-                    <input type="number" id="qty-${mat.id}" placeholder="QTY">
-                    <input type="text" id="loc-${mat.id}" placeholder="LOC">
-                    <button class="add-btn" onclick="addToManifest('${mat.id}')">+</button>
-                `;
+                row.innerHTML = `<span>${mat.name}</span><input type="number" id="qty-${mat.id}" placeholder="QTY"><input type="text" id="loc-${mat.id}" placeholder="LOC"><button class="add-btn" onclick="addToManifest('${mat.id}')">+</button>`;
                 content.appendChild(row);
             });
             container.appendChild(header);
@@ -160,75 +153,45 @@
     }
 
     function addToManifest(id) {
-        const qty = parseInt(document.getElementById(`qty-${id}`).value);
-        const loc = document.getElementById(`loc-${id}`).value || "NONE";
-        const handle = document.getElementById('user-handle').value || "ANON";
-
+        const qtyIn = document.getElementById(`qty-${id}`);
+        const locIn = document.getElementById(`loc-${id}`);
+        const qty = parseInt(qtyIn.value);
         if (!qty || qty <= 0) return;
 
-        const entry = {
+        manifest.unshift({
             uid: Date.now(),
             id: id,
             qty: qty,
-            loc: loc.toUpperCase(),
-            user: handle.toUpperCase()
-        };
-
-        manifest.unshift(entry);
-        saveAndSync();
-        
-        // Clear local inputs
-        document.getElementById(`qty-${id}`).value = '';
-        document.getElementById(`loc-${id}`).value = '';
+            loc: (locIn.value || "UNKNOWN").toUpperCase(),
+            user: (document.getElementById('user-handle').value || "ANON").toUpperCase()
+        });
+        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
+        qtyIn.value = ''; locIn.value = '';
+        renderManifest(); updateDisplay();
     }
 
     function renderManifest() {
         const list = document.getElementById('manifest-list');
-        list.innerHTML = '<h3 style="font-size:10px; color:#444; margin-top:0;">[ ACTIVE_MANIFEST ]</h3>';
-        
-        manifest.forEach(entry => {
-            const mat = MATERIALS.find(m => m.id === entry.id);
+        const header = list.querySelector('div');
+        list.innerHTML = ''; list.appendChild(header);
+        manifest.forEach(e => {
+            const mat = MATERIALS.find(m => m.id === e.id);
             const div = document.createElement('div');
             div.className = 'manifest-entry';
-            div.innerHTML = `
-                <div class="m-info">
-                    <b>${mat ? mat.name : entry.id} (x${entry.qty})</b>
-                    <div>LOC: ${entry.loc} | USER: ${entry.user}</div>
-                </div>
-                <div class="m-ctrls">
-                    <button class="del-mini" onclick="removeEntry(${entry.uid})">X</button>
-                </div>
-            `;
+            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | BY: ${e.user}</span></div><button class="del-mini" onclick="removeEntry(${e.uid})">X</button>`;
             list.appendChild(div);
         });
     }
 
     function removeEntry(uid) {
         manifest = manifest.filter(e => e.uid !== uid);
-        saveAndSync();
-    }
-
-    function saveAndSync() {
         localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
-        renderManifest();
-        updateDisplay();
-        syncWithCloud();
-    }
-
-    async function syncWithCloud() {
-        const squad = document.getElementById('squad-code').value;
-        const handle = document.getElementById('user-handle').value;
-        if (!squad || !handle) return;
-        try {
-            const payload = { action: "sync", squadCode: squad, handle: handle, manifest: JSON.stringify(manifest) };
-            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-        } catch (e) { }
+        renderManifest(); updateDisplay();
     }
 
     function updateDisplay() {
         const grid = document.getElementById('contract-grid');
         grid.innerHTML = '';
-        
         const totals = manifest.reduce((acc, curr) => {
             acc[curr.id] = (acc[curr.id] || 0) + curr.qty;
             return acc;
@@ -241,10 +204,17 @@
                 const stock = totals[ing.id] || 0;
                 if (stock < ing.qty) canCraft = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                const locStr = LOCATIONS[ing.id] || "No Data";
+                
+                // Get list of specific squad entries for this material
+                const squadEntries = manifest.filter(e => e.id === ing.id);
+                const authorityHTML = squadEntries.length > 0 ? 
+                    `<div class="authority-list">` + 
+                    squadEntries.map(e => `<div class="auth-entry"><span>[${e.qty}] @ ${e.loc}</span><b>AUTH: ${e.user}</b></div>`).join('') + 
+                    `</div>` : '';
+
                 return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}">
-                    <div>${stock}/${ing.qty} ${mat ? mat.name : ing.id}</div>
-                    <div style="font-size:9px; color:#555;">WHERE: ${locStr}</div>
+                    <b>${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b>
+                    ${authorityHTML}
                 </li>`;
             }).join('');
 
@@ -252,16 +222,15 @@
             if (filterMode === 'all' || (filterMode === 'craftable' && canCraft)) {
                 const card = document.createElement('div');
                 card.className = `card ${canCraft ? 'craftable' : ''}`;
-                card.innerHTML = `<div><b style="color:#FFF;">${c.name}</b><ul class="ingred-list">${ingreds}</ul></div><button class="btn">${canCraft ? 'READY' : 'INCOMPLETE'}</button>`;
+                card.innerHTML = `<div><b style="color:#FFF; font-size:16px;">${c.name}</b><ul class="ingred-list">${ingreds}</ul></div>`;
                 grid.appendChild(card);
             }
         });
-        document.getElementById('stats-header').innerHTML = `MANIFEST // <span style="color:var(--t-orange);">${readyCount} READY</span>`;
+        document.getElementById('stats-header').innerHTML = `MANIFEST // READY: <span style="color:var(--t-orange);">${readyCount}</span>`;
     }
 
     function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); }
     function setFilter(f) { filterMode = f; updateDisplay(); }
-    function resetAll() { if(confirm("PURGE_MANIFEST?")) { manifest = []; saveAndSync(); } }
     window.onload = loadSystemData;
 </script>
 </body>
