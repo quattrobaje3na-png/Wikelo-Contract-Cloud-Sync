@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIKELO::CONTRACT_TRACKER v1.0</title>
+    <title>WIKELO::CONTRACT_TRACKER v1.3</title>
     <style>
         :root {
             --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a;
@@ -13,7 +13,7 @@
             background: var(--bg); color: #fff; font-family: 'Courier New', monospace;
             margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
-        /* --- SIDEBAR: STOCK LEDGER --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 350px; border-right: 2px solid var(--t-orange);
             padding: 20px; overflow-y: auto; background: #050505;
@@ -23,22 +23,22 @@
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 5px; background: var(--card); padding: 5px 8px; border: 1px solid var(--border);
         }
-        .inv-item span { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .inv-item input {
-            width: 50px; background: #000; border: 1px solid var(--t-orange);
-            color: var(--t-orange); text-align: center; font-family: monospace; font-size: 11px;
+            width: 55px; background: #000; border: 1px solid var(--t-orange);
+            color: var(--t-orange); text-align: center; font-family: monospace; font-size: 11px; outline: none;
         }
         /* --- MAIN CONTENT --- */
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .header-controls {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px;
+            margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10;
         }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; }
-        /* --- CONTRACT CARDS --- */
-        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; }
+        /* --- CARDS --- */
+        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; transition: 0.2s; position: relative; }
         .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
         .card.completed { opacity: 0.4; border-style: dashed; }
+        .card.pinned { border-left: 4px solid var(--t-orange); }
         .card-cat { font-size: 9px; text-transform: uppercase; background: #222; padding: 2px 5px; margin-bottom: 8px; display: inline-block; }
         .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; }
         .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
@@ -47,16 +47,17 @@
         /* --- UI ELEMENTS --- */
         .btn {
             background: transparent; border: 1px solid var(--t-orange); color: var(--t-orange);
-            padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold;
+            padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold; font-family: monospace;
         }
         .btn:hover:not(:disabled) { background: rgba(255,140,0,0.1); }
         .active-filter { background: var(--t-orange) !important; color: #000 !important; }
+        #manifest-search { width: 220px; text-align: left; cursor: text; outline: none; }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <h2 style="color: var(--t-orange); font-size: 14px; margin-bottom: 5px;">[ STOCK_LEDGER ]</h2>
+    <h2 style="color: var(--t-orange); font-size: 14px;">[ STOCK_LEDGER ]</h2>
     <div id="inventory-list"></div>
     <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_ALL_DATA ]</button>
 </div>
@@ -64,47 +65,42 @@
 <div class="main-content">
     <div class="header-controls">
         <h1 id="stats-header">WIKELO::MANIFEST</h1>
-        <div style="display:flex; gap:10px;">
-            <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
-            <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="manifest-search" class="btn" placeholder="SEARCH_MANIFEST..." oninput="updateDisplay()">
+            <div class="filter-group" style="display:flex; gap:5px;">
+                <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+                <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
+                <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
+            </div>
         </div>
     </div>
     <div id="contract-grid" class="grid"></div>
 </div>
 
 <script>
-    // COMPLETE DATA INTEGRATION
+    // FULL DATASET
     const MATERIALS = [
         {id:"wikelo-favor", name:"Wikelo Favor", cat:"currency"}, {id:"mg-scrip", name:"MG Scrip", cat:"currency"}, {id:"polaris-bit", name:"Polaris Bit", cat:"currency"}, {id:"council-scrip", name:"Council Scrip", cat:"currency"},
-        {id:"quantainium", name:"Quantainium", cat:"ores"}, {id:"carinite", name:"Carinite", cat:"ores"}, {id:"carinite-pure", name:"Carinite (Pure)", cat:"ores"}, {id:"jaclium", name:"Jaclium (Ore)", cat:"ores"}, {id:"saldynium", name:"Saldynium (Ore)", cat:"ores"}, {id:"copper", name:"Copper", cat:"ores"}, {id:"tungsten", name:"Tungsten", cat:"ores"}, {id:"corundum", name:"Corundum", cat:"ores"},
-        {id:"valakkar-pearl-aaa", name:"Pearl (AAA)", cat:"creature"}, {id:"valakkar-pearl-aa", name:"Pearl (AA)", cat:"creature"}, {id:"valakkar-fang-apex", name:"Fang (Apex)", cat:"creature"}, {id:"valakkar-fang-adult", name:"Fang (Adult)", cat:"creature"}, {id:"valakkar-fang-juvenile", name:"Fang (Juvenile)", cat:"creature"}, {id:"tundra-kopion-horn", name:"Kopion Horn", cat:"creature"}, {id:"irradiated-kopion-horn", name:"Irradiated Horn", cat:"creature"}, {id:"yormandi-eye", name:"Yormandi Eye", cat:"creature"}, {id:"yormandi-tongue", name:"Yormandi Tongue", cat:"creature"},
-        {id:"uee-medal", name:"UEE Medal", cat:"medals"}, {id:"tevarin-marker", name:"Tevarin Marker", cat:"medals"}, {id:"gov-medal", name:"GCA Medal", cat:"medals"}, {id:"artefact-fragment", name:"Artefact Fragment", cat:"medals"},
+        {id:"quantainium", name:"Quantainium", cat:"ores"}, {id:"carinite", name:"Carinite", cat:"ores"}, {id:"carinite-pure", name:"Carinite (Pure)", cat:"ores"}, {id:"jaclium", name:"Jaclium (Ore)", cat:"ores"}, {id:"saldynium", name:"Saldynium (Ore)", cat:"ores"},
+        {id:"valakkar-pearl-aaa", name:"Pearl (AAA)", cat:"creature"}, {id:"valakkar-fang-apex", name:"Fang (Apex)", cat:"creature"}, {id:"uee-medal", name:"UEE Medal", cat:"medals"}, {id:"tevarin-marker", name:"Tevarin Marker", cat:"medals"},
         {id:"asd-secure-drive", name:"ASD Secure Drive", cat:"tech"}, {id:"comp-board", name:"Comp-Board", cat:"tech"}, {id:"nn-13-cannon", name:"NN-13 Cannon", cat:"tech"},
-        {id:"rcmbnt-rgl-1", name:"RCMBNT-RGL-1", cat:"tech"}, {id:"rcmbnt-rgl-2", name:"RCMBNT-RGL-2", cat:"tech"}, {id:"rcmbnt-rgl-3", name:"RCMBNT-RGL-3", cat:"tech"},
-        {id:"rcmbnt-pwl-1", name:"RCMBNT-PWL-1", cat:"tech"}, {id:"rcmbnt-pwl-2", name:"RCMBNT-PWL-2", cat:"tech"}, {id:"rcmbnt-pwl-3", name:"RCMBNT-PWL-3", cat:"tech"},
-        {id:"rcmbnt-xtl-1", name:"RCMBNT-XTL-1", cat:"tech"}, {id:"rcmbnt-xtl-2", name:"RCMBNT-XTL-2", cat:"tech"}, {id:"rcmbnt-xtl-3", name:"RCMBNT-XTL-3", cat:"tech"},
-        {id:"argo-atls", name:"Argo ATLS", cat:"gear"}, {id:"argo-atls-geo", name:"Argo ATLS Geo", cat:"gear"}, {id:"argo-atls-ikti", name:"Argo ATLS Ikti", cat:"gear"}, {id:"ace-helmet", name:"Ace Helmet", cat:"gear"}, {id:"vanduul-plating", name:"Vanduul Plating", cat:"gear"}, {id:"vanduul-metal", name:"Vanduul Metal", cat:"gear"},
-        {id:"antium-helmet", name:"Antium Helmet", cat:"gear"}, {id:"antium-core", name:"Antium Core", cat:"gear"}, {id:"antium-legs", name:"Antium Legs", cat:"gear"}, {id:"antium-arms", name:"Antium Arms", cat:"gear"},
-        {id:"corbel-helmet", name:"Corbel Helmet", cat:"gear"}, {id:"corbel-core", name:"Corbel Core", cat:"gear"}, {id:"corbel-legs", name:"Corbel Legs", cat:"gear"}, {id:"corbel-arms", name:"Corbel Arms", cat:"gear"}, {id:"corbel-backpack", name:"Corbel Backpack", cat:"gear"},
-        {id:"geist-helmet", name:"Geist Helmet", cat:"gear"}, {id:"geist-core", name:"Geist Core", cat:"gear"}, {id:"geist-legs", name:"Geist Legs", cat:"gear"}, {id:"geist-arms", name:"Geist Arms", cat:"gear"}, {id:"geist-backpack", name:"Geist Backpack", cat:"gear"},
-        {id:"strata-helmet", name:"Strata Helmet", cat:"gear"}, {id:"strata-core", name:"Strata Core", cat:"gear"}, {id:"strata-arms", name:"Strata Arms", cat:"gear"}, {id:"strata-legs", name:"Strata Legs", cat:"gear"}, {id:"strata-backpack", name:"Strata Backpack", cat:"gear"}
+        {id:"argo-atls", name:"Argo ATLS", cat:"gear"}, {id:"ace-helmet", name:"Ace Helmet", cat:"gear"},
+        {id:"antium-core", name:"Antium Core", cat:"gear"}, {id:"antium-helmet", name:"Antium Helmet", cat:"gear"}, {id:"antium-legs", name:"Antium Legs", cat:"gear"}, {id:"antium-arms", name:"Antium Arms", cat:"gear"},
+        {id:"geist-helmet", name:"Geist Helmet", cat:"gear"}, {id:"geist-core", name:"Geist Core", cat:"gear"}, {id:"geist-legs", name:"Geist Legs", cat:"gear"}, {id:"geist-arms", name:"Geist Arms", cat:"gear"}, {id:"geist-backpack", name:"Geist Backpack", cat:"gear"}
     ];
 
     const CONTRACTS = [
         {id:"ana-endro", cat:"armor", name:"Armor with horn and string", reward:"Ana Armor Endro Set", ingredients:[{id:"carinite-pure", qty:1}, {id:"antium-core", qty:1}, {id:"antium-helmet", qty:1}, {id:"antium-legs", qty:1}, {id:"antium-arms", qty:1}]},
         {id:"bokto-armor", cat:"armor", name:"Make glowy armor", reward:"Bokto Armor Set", ingredients:[{id:"valakkar-pearl-aaa", qty:1}, {id:"antium-core", qty:1}, {id:"antium-helmet", qty:1}, {id:"antium-legs", qty:1}, {id:"antium-arms", qty:1}]},
         {id:"geist-snow", cat:"armor", name:"Hide Snow Suit", reward:"Geist Snow Camo Set", ingredients:[{id:"asd-secure-drive", qty:4}, {id:"geist-helmet", qty:1}, {id:"geist-core", qty:1}, {id:"geist-legs", qty:1}, {id:"geist-arms", qty:1}, {id:"geist-backpack", qty:1}]},
-        {id:"strata-heatwave", cat:"armor", name:"Do Lava Suit", reward:"Strata Heatwave Set", ingredients:[{id:"carinite", qty:30}, {id:"rcmbnt-pwl-1", qty:4}, {id:"rcmbnt-pwl-2", qty:4}, {id:"rcmbnt-pwl-3", qty:4}, {id:"strata-core", qty:1}, {id:"strata-arms", qty:1}, {id:"strata-legs", qty:1}, {id:"strata-helmet", qty:1}, {id:"strata-backpack", qty:1}]},
-        {id:"atls-ikti", cat:"vehicle", name:"Make ATLS shoot", reward:"ATLS IKTI", ingredients:[{id:"argo-atls", qty:1}, {id:"wikelo-favor", qty:2}, {id:"valakkar-fang-apex", qty:5}, {id:"nn-13-cannon", qty:2}]},
-        {id:"c1-spirit", cat:"ship", name:"Spirit Cargo mod", reward:"C1 Spirit Wikelo Special", ingredients:[{id:"wikelo-favor", qty:8}, {id:"tevarin-marker", qty:1}]},
-        {id:"zeus-es", cat:"ship", name:"Zeus Special", reward:"Zeus Mk II ES Wikelo Work", ingredients:[{id:"wikelo-favor", qty:10}, {id:"uee-medal", qty:1}]},
-        {id:"wikelo-polaris", cat:"ship", name:"Now make Polaris. Short Time Deal.", reward:"RSI Polaris Wikelo Special", ingredients:[{id:"wikelo-favor", qty:50}, {id:"polaris-bit", qty:15}, {id:"asd-secure-drive", qty:15}, {id:"comp-board", qty:10}, {id:"carinite", qty:20}, {id:"mg-scrip", qty:20}, {id:"carinite-pure", qty:15}]},
-        {id:"ex-mg-scrip", cat:"currency", name:"Trade Merc Scrip for Favors?", reward:"1x Wikelo Favor", ingredients:[{id:"mg-scrip", qty:50}]}
+        {id:"atls-ikti", cat:"vehicle", name:"Make ATLS shoot", reward:"ATLS IKTI", ingredients:[{id:"argo-atls", qty:1}, {id:"wikelo-favor", qty:2}, {id:"nn-13-cannon", qty:2}]},
+        {id:"wikelo-polaris", cat:"ship", name:"Polaris Build", reward:"RSI Polaris Wikelo Special", ingredients:[{id:"wikelo-favor", qty:50}, {id:"polaris-bit", qty:15}, {id:"asd-secure-drive", qty:15}, {id:"comp-board", qty:10}, {id:"carinite-pure", qty:15}]}
     ];
 
-    // PERSISTENCE LOGIC
+    // PERSISTENCE
     let inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
     let completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
+    let tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
     let filterMode = 'craftable';
 
     function renderInventory() {
@@ -114,8 +110,7 @@
         MATERIALS.forEach(mat => {
             if(mat.cat !== lastCat) {
                 const label = document.createElement('span');
-                label.className = 'category-label';
-                label.innerText = mat.cat;
+                label.className = 'category-label'; label.innerText = mat.cat;
                 container.appendChild(label);
                 lastCat = mat.cat;
             }
@@ -132,20 +127,42 @@
         updateDisplay();
     }
 
+    function toggleTrack(id) {
+        const idx = tracked.indexOf(id);
+        if(idx > -1) tracked.splice(idx, 1);
+        else tracked.push(id);
+        localStorage.setItem('wikelo-tracked', JSON.stringify(tracked));
+        updateDisplay();
+    }
+
     function setFilter(mode) {
         filterMode = mode;
-        document.getElementById('f-all').classList.toggle('active-filter', mode === 'all');
-        document.getElementById('f-craft').classList.toggle('active-filter', mode === 'craftable');
+        ['f-all', 'f-craft', 'f-track'].forEach(id => document.getElementById(id).classList.remove('active-filter'));
+        document.getElementById(`f-${mode === 'tracked' ? 'track' : mode === 'craftable' ? 'craft' : 'all'}`).classList.add('active-filter');
         updateDisplay();
     }
 
     function updateDisplay() {
         const grid = document.getElementById('contract-grid');
+        const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
-        let count = 0;
+        let readyCount = 0;
 
-        CONTRACTS.forEach(c => {
+        // Sort: Tracked items first, then alphabetical
+        const sorted = [...CONTRACTS].sort((a, b) => {
+            const aT = tracked.includes(a.id) ? 1 : 0;
+            const bT = tracked.includes(b.id) ? 1 : 0;
+            if(aT !== bT) return bT - aT;
+            return a.name.localeCompare(b.name);
+        });
+
+        sorted.forEach(c => {
             const isDone = completed.includes(c.id);
+            const isPinned = tracked.includes(c.id);
+            const matchesSearch = c.name.toLowerCase().includes(searchTerm) || c.reward.toLowerCase().includes(searchTerm);
+            
+            if(!matchesSearch) return;
+
             let canCraft = true;
             let ingreds = c.ingredients.map(ing => {
                 const owned = inventory[ing.id] || 0;
@@ -153,21 +170,31 @@
                 return `<li class="${owned >= ing.qty ? 'status-ready' : 'status-missing'}">${owned}/${ing.qty} ${MATERIALS.find(m => m.id === ing.id).name}</li>`;
             }).join('');
 
-            if(canCraft && !isDone) count++;
-            if(filterMode === 'all' || (canCraft && !isDone)) {
+            if(canCraft && !isDone) readyCount++;
+
+            const show = (filterMode === 'all') || (filterMode === 'craftable' && canCraft && !isDone) || (filterMode === 'tracked' && isPinned);
+
+            if(show) {
                 const card = document.createElement('div');
-                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isDone ? 'completed' : ''}`;
-                card.innerHTML = `<span class="card-cat">${c.cat}</span><div style="font-weight:bold;">${c.name}</div><span class="reward-text">REWARD: ${c.reward}</span><ul class="ingred-list">${ingreds}</ul>
-                ${isDone ? '<button class="btn" disabled>[ COMPLETED ]</button>' : `<button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN_CONTRACT ]' : '[ INSUFFICIENT_STOCK ]'}</button>`}`;
+                card.className = `card ${canCraft && !isDone ? 'craftable' : ''} ${isDone ? 'completed' : ''} ${isPinned ? 'pinned' : ''}`;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="card-cat">${c.cat}</span>
+                        <button class="btn" style="border:none; color:${isPinned ? 'var(--t-orange)' : '#444'}" onclick="toggleTrack('${c.id}')">${isPinned ? '★ PINNED' : '☆ PIN'}</button>
+                    </div>
+                    <div style="font-weight:bold;">${c.name}</div>
+                    <span class="reward-text">REWARD: ${c.reward}</span>
+                    <ul class="ingred-list">${ingreds}</ul>
+                    ${isDone ? '<button class="btn" disabled>[ COMPLETED ]</button>' : `<button class="btn" ${!canCraft ? 'disabled' : ''} onclick="execute('${c.id}')">${canCraft ? '[ HAND_IN_CONTRACT ]' : '[ INSUFFICIENT_STOCK ]'}</button>`}`;
                 grid.appendChild(card);
             }
         });
-        document.getElementById('stats-header').innerText = `MANIFEST :: ${count} READY`;
+        document.getElementById('stats-header').innerText = `MANIFEST :: ${readyCount} READY`;
     }
 
     function execute(id) {
         const c = CONTRACTS.find(x => x.id === id);
-        if(!confirm(`HAND IN MATERIALS FOR: ${c.name}?`)) return;
+        if(!confirm(`HAND IN FOR: ${c.name}?`)) return;
         c.ingredients.forEach(ing => inventory[ing.id] -= ing.qty);
         completed.push(id);
         localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
@@ -175,7 +202,7 @@
         renderInventory(); updateDisplay();
     }
 
-    function resetAll() { if(confirm("WIPE ALL PROGRESS?")) { localStorage.clear(); location.reload(); } }
+    function resetAll() { if(confirm("WIPE ALL DATA?")) { localStorage.clear(); location.reload(); } }
 
     window.onload = () => { renderInventory(); updateDisplay(); };
 </script>
