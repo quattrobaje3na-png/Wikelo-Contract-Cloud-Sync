@@ -2,263 +2,315 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIKELO::LOGISTICS_SYNC v1.9.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WIKELO::LOGISTICS_SQUAD_REP v2.7</title>
     <style>
-        :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { 
+            --t-orange: #FF8C00; 
+            --bg: #000000; 
+            --card: #050505;
+            --border: #FF8C00; 
+            --success: #00FF00;
+            --error: #FF0000;
+            --text-main: #FFFFFF;
+            --text-dim: #BBBBBB;
+        }
         
-        /* --- SIDEBAR & REP --- */
-        .sidebar { width: 420px; border-right: 2px solid var(--t-orange); padding: 20px; overflow-y: auto; background: #050505; }
-        .rep-display { background: #111; border: 1px solid var(--t-orange); padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: inset 0 0 10px rgba(255,140,0,0.1); }
-        .rep-val { font-size: 28px; color: var(--t-orange); text-shadow: 0 0 12px var(--t-orange); font-weight: bold; }
-        
-        /* --- MULTI-USER MODAL --- */
-        #user-modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); }
-        .modal-content { background: #0a0a0a; border: 2px solid var(--t-orange); width: 350px; margin: 10% auto; padding: 25px; text-align: center; }
-        .user-checkbox-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #222; margin: 8px 0; cursor: pointer; transition: 0.1s; }
-        .user-checkbox-item:hover { border-color: var(--t-orange); background: #111; }
-        .user-checkbox-item.selected { border-color: var(--success); background: rgba(0,255,0,0.05); color: var(--success); }
+        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--t-orange) #000; } 
+        body { background: var(--bg); color: var(--text-main); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- LOGISTICS LAYOUT --- */
-        .tab-header { background: #111; border: 1px solid var(--border); color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; text-transform: uppercase; font-weight: bold; }
-        .tab-content { display: none; padding: 5px; border: 1px solid #222; background: #080808; border-top: none; }
+        /* --- SIDEBAR --- */
+        .sidebar { width: 480px; border-right: 2px solid var(--border); display: flex; flex-direction: column; background: var(--bg); flex-shrink: 0; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 2px solid var(--border); background: #000; }
+
+        /* --- REP DISPLAY --- */
+        .rep-display { background: #111; border: 1px solid var(--t-orange); padding: 15px; margin-bottom: 15px; text-align: center; }
+        .rep-val { font-size: 24px; color: var(--t-orange); text-shadow: 0 0 10px var(--t-orange); font-weight: bold; }
+
+        .sidebar-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar-scroll-top { height: 50%; overflow-y: auto; padding: 15px; border-bottom: 2px solid var(--border); background: #050505; }
+        .manifest-zone { height: 50%; background: #000; overflow-y: auto; padding: 15px; }
+
+        /* --- TABS & INPUTS --- */
+        .tab-header { border: 2px solid var(--border); color: var(--t-orange); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; text-transform: uppercase; background: #000; font-weight: bold; letter-spacing: 1px; }
+        .tab-content { display: none; padding: 5px; border: 2px solid var(--border); border-top: none; background: #050505; }
         .tab-content.open { display: block; }
-        .inv-item { display: grid; grid-template-columns: 1fr 50px 100px; gap: 8px; align-items: center; padding: 6px 8px; border-bottom: 1px solid #111; }
-        .inv-item span { font-size: 10px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .inv-item input { background: #000; border: 1px solid var(--t-orange); color: var(--t-orange); text-align: center; font-size: 11px; outline: none; }
+        .input-row { display: grid; grid-template-columns: 1fr 50px 80px 45px; gap: 8px; align-items: center; padding: 12px 6px; border-bottom: 1px solid #333; }
+        .input-row input { background: #000; border: 1px solid #666; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
+        .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; }
 
-        /* --- MAIN CONTENT --- */
-        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
-        .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--t-orange); padding-bottom: 15px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 15px; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 15px; position: relative; }
-        .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
-        .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; font-weight: bold; }
-        .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
-        .status-ready { color: var(--success); }
-        .status-missing { color: var(--error); }
-        
-        .btn { background: transparent; border: 1px solid var(--t-orange); color: var(--t-orange); padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold; font-family: monospace; }
-        .btn:hover:not(:disabled) { background: rgba(255,140,0,0.1); }
-        .active-filter { background: var(--t-orange) !important; color: #000 !important; }
+        /* --- SQUAD MODAL --- */
+        #rep-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); }
+        .modal-content { background: #050505; border: 2px solid var(--t-orange); width: 380px; margin: 10% auto; padding: 25px; text-align: center; }
+        .user-option { display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #222; margin: 8px 0; cursor: pointer; color: var(--text-dim); }
+        .user-option:hover { border-color: var(--t-orange); }
+        .user-option.selected { border-color: var(--success); color: var(--success); background: rgba(0,255,0,0.05); }
+
+        /* --- MANIFEST LIST --- */
+        .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+        .m-info b { color: var(--t-orange); font-size: 13px; display: block; }
+        .m-info span { font-size: 11px; color: #FFF; font-style: italic; }
+        .del-mini { color: var(--error); border: 2px solid var(--error); background: transparent; font-size: 11px; cursor: pointer; padding: 6px 10px; font-weight: bold; }
+
+        /* --- SYNC LAMP --- */
+        .sync-status { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--t-orange); font-weight: bold; }
+        .lamp { width: 8px; height: 8px; border-radius: 50%; background: #222; border: 1px solid #444; transition: 0.3s; }
+        .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); border-color: #fff; }
+
+        /* --- MAIN GRID --- */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid var(--border); background: #000; }
+        .scroll-area { flex: 1; overflow-y: auto; padding: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 30px; }
+        .card { background: var(--card); border: 2px solid var(--border); padding: 25px; position: relative; }
+        .card.craftable { border-top: 10px solid var(--success); }
+        .reward-label { color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 6px 0; display: block; }
+        .ingred-list { font-size: 14px; list-style: none; padding: 0; margin: 15px 0; }
+        .ingred-list > li { margin-bottom: 22px; border-bottom: 1px solid #333; padding-bottom: 14px; }
+        .authority-box { font-size: 11px; margin-top: 10px; background: rgba(255,140,0,0.12); padding: 10px; border-left: 3px solid var(--t-orange); }
+        .btn { background: transparent; border: 2px solid var(--border); color: var(--t-orange); padding: 12px 24px; cursor: pointer; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .btn:hover { background: var(--t-orange); color: #000; }
+        .btn.active { background: var(--t-orange); color: #000; }
     </style>
 </head>
 <body>
 
-<div id="user-modal">
+<div id="rep-modal">
     <div class="modal-content">
-        <h3 style="color:var(--t-orange); margin-top:0;">AWARD_FULL_REP</h3>
-        <p style="font-size:10px; color:#888;">Select all participants. Each will receive full REP.</p>
-        <div id="user-list-target"></div>
-        <button class="btn" style="border-color:var(--success); color:var(--success); margin-bottom:5px;" onclick="finalizeContract()">[ EXECUTE_DISTRIBUTION ]</button>
-        <button class="btn" style="border-color:#444; color:#444;" onclick="closeModal()">CANCEL</button>
+        <h3 style="color:var(--t-orange); margin:0 0 10px 0;">AWARD_FULL_REP</h3>
+        <p style="font-size:10px; color:#888; margin-bottom:20px;">Every selected user receives the full REP value.</p>
+        <div id="squad-selector-list"></div>
+        <button class="btn" style="border-color:var(--success); color:var(--success); width:100%; margin-top:15px;" onclick="finalizeHandIn()">[ EXECUTE_REP_DISTRIBUTION ]</button>
+        <button class="btn" style="border-color:#444; color:#444; width:100%; margin-top:8px;" onclick="closeModal()">CANCEL</button>
     </div>
 </div>
 
 <div class="sidebar">
-    <div class="rep-display">
-        <div style="font-size: 9px; letter-spacing: 3px; color: #888;">MY_TOTAL_REPUTATION</div>
-        <div id="total-rep" class="rep-val">0</div>
-    </div>
-    <div class="sync-panel" style="background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px;">
-        <input type="text" id="squad-code" class="btn" style="width:100%; text-align:left; margin-bottom:5px;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
-        <input type="text" id="user-handle" class="btn" style="width:100%; text-align:left;" placeholder="MY_HANDLE..." onchange="saveConfig()">
-        <div style="display:flex; align-items:center; font-size:10px; margin-top:10px;">
-            <div id="sync-lamp" style="width:10px; height:10px; border-radius:50%; background:#333; margin-right:8px;"></div>
-            <span id="sync-text">STATUS: LOCAL_ONLY</span>
+    <div class="sidebar-header">
+        <div class="rep-display">
+            <div style="font-size: 9px; letter-spacing: 2px; color: #888; margin-bottom:5px;">PERSONAL_REPUTATION</div>
+            <div id="total-rep" class="rep-val">0</div>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <input type="text" id="squad-code" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
+            <input type="text" id="user-handle" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
+        </div>
+        <div class="sync-status">
+            <div id="sync-lamp" class="lamp"></div>
+            <span>LINK_STATUS: STABLE</span>
         </div>
     </div>
-    <div id="inventory-tabs"></div>
-    <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_LOCAL_DATA ]</button>
+
+    <div class="sidebar-split">
+        <div class="sidebar-scroll-top" id="inventory-tabs"></div>
+        <div class="manifest-zone" id="manifest-list">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #333; padding-bottom:10px;">
+                <h3 style="font-size:13px; color:var(--t-orange); margin:0;">[ ACTIVE_MANIFEST ]</h3>
+                <button onclick="resetAll()" style="background:transparent; border:2px solid var(--error); color:var(--error); font-size:10px; padding:6px 12px; font-weight:bold;">PURGE_ALL</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="main-content">
     <div class="header-controls">
-        <h1 id="stats-header">MANIFEST</h1>
-        <div style="display:flex; gap:8px; align-items:center;">
-            <input type="text" id="manifest-search" class="btn" style="width:200px; text-align:left;" placeholder="SEARCH..." oninput="updateDisplay()">
-            <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
-            <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+        <h1 id="stats-header" style="margin:0; font-size: 20px; letter-spacing: 2px; color: #fff;">MANIFEST // <span style="color:var(--t-orange);">0 READY</span></h1>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <input type="text" id="manifest-search" style="background:#000; border:2px solid #444; color:#fff; padding:10px; font-size:12px; width:220px;" placeholder="SEARCH CONTRACTS..." oninput="updateDisplay()">
+            <div class="filter-group" style="display:flex; gap:10px;">
+                <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+                <button class="btn active" id="f-craft" onclick="setFilter('craftable')">READY</button>
+                <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
+            </div>
         </div>
     </div>
-    <div id="contract-grid" class="grid"></div>
+    <div class="scroll-area">
+        <div id="contract-grid" class="grid"></div>
+    </div>
 </div>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywgKsYfx5yZP2cgLDlfsKia5hEcbS5LrJ6v4SQtdzRF4CyBGPYtfz_gnTiNbO3gaCxUA/exec";
-    let MATERIALS = [], CONTRACTS = [];
-    let inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
-    let completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
-    let totalREP = parseInt(localStorage.getItem('wikelo-rep')) || 0;
     
+    let MATERIALS = [], CONTRACTS = [], manifest = [], tracked = [], squadMembers = [];
+    let filterMode = 'craftable';
+    let totalREP = parseInt(localStorage.getItem('wikelo-rep')) || 0;
     let activeContractId = null;
     let selectedParticipants = new Set();
-    let filterMode = 'craftable';
-
-    const CATEGORIES = {
-        "currency": "Currency & Scrips",
-        "ores": "Raw Materials",
-        "creature": "Creature Materials",
-        "medals": "Artifacts & Medals",
-        "tech": "Tech & RCMBNTs",
-        "weapons": "Weapons",
-        "gear": "Gear & Vehicles"
-    };
 
     async function loadSystemData() {
-        const response = await fetch('wikelo-data.json');
-        const data = await response.json();
-        MATERIALS = data.materials;
-        CONTRACTS = data.contracts;
-        
-        document.getElementById('total-rep').innerText = totalREP;
-        document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
-        document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
-        
-        renderInventoryTabs();
-        updateDisplay();
-        setInterval(syncWithCloud, 15000);
-        syncWithCloud();
+        try {
+            const dRes = await fetch('wikelo-data.json');
+            const d = await dRes.json();
+            MATERIALS = d.materials || [];
+            CONTRACTS = d.contracts || [];
+            manifest = JSON.parse(localStorage.getItem('wikelo-manifest-v2')) || [];
+            tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
+            
+            document.getElementById('total-rep').innerText = totalREP;
+            document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
+            document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
+            
+            renderTabs();
+            renderManifest();
+            updateDisplay();
+            setInterval(syncWithCloud, 15000);
+            syncWithCloud();
+        } catch (e) { console.error(e); }
     }
 
-    function renderInventoryTabs() {
+    function renderTabs() {
         const container = document.getElementById('inventory-tabs');
         container.innerHTML = '';
-        Object.entries(CATEGORIES).forEach(([key, label]) => {
+        const cats = { "currency": "Currency", "ores": "Ores", "creature": "Fauna", "medals": "Artifacts", "tech": "Tech", "weapons": "Weapons", "gear": "Gear" };
+        Object.entries(cats).forEach(([key, label]) => {
+            const mats = MATERIALS.filter(m => m.cat === key);
+            if (mats.length === 0) return;
             const header = document.createElement('div');
             header.className = 'tab-header';
-            header.innerHTML = `<span>${label}</span><span>[+]</span>`;
+            header.innerHTML = `<span>${label}</span><span>+</span>`;
             header.onclick = () => {
-                const content = header.nextElementSibling;
-                content.classList.toggle('open');
-                header.querySelector('span:last-child').innerText = content.classList.contains('open') ? '[-]' : '[+]';
+                const c = header.nextElementSibling;
+                c.classList.toggle('open');
+                header.querySelector('span:last-child').innerText = c.classList.contains('open') ? '-' : '+';
             };
             const content = document.createElement('div');
             content.className = 'tab-content';
-            MATERIALS.filter(m => m.cat === key).forEach(mat => {
-                const data = inventory[mat.id] || { qty: 0, loc: "" };
-                const item = document.createElement('div');
-                item.className = 'inv-item';
-                item.innerHTML = `
-                    <span>${mat.name}</span>
-                    <input type="number" value="${data.qty}" onchange="updateStock('${mat.id}', 'qty', this.value)">
-                    <input type="text" style="width:100px; border-color:#333; color:#888; text-transform:uppercase; font-size:9px;" value="${data.loc}" placeholder="LOC" onchange="updateStock('${mat.id}', 'loc', this.value)">
-                `;
-                content.appendChild(item);
+            mats.forEach(mat => {
+                const row = document.createElement('div');
+                row.className = 'input-row';
+                row.innerHTML = `<span>${mat.name}</span><input type="number" id="qty-${mat.id}" placeholder="QTY"><input type="text" id="loc-${mat.id}" placeholder="LOC"><button class="add-btn" onclick="addToManifest('${mat.id}')">+</button>`;
+                content.appendChild(row);
             });
             container.appendChild(header);
             container.appendChild(content);
         });
     }
 
-    function updateStock(id, field, val) {
-        if (!inventory[id]) inventory[id] = { qty: 0, loc: "" };
-        if (field === 'qty') inventory[id].qty = Math.max(0, parseInt(val) || 0);
-        else inventory[id].loc = val.toUpperCase();
-        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
-        updateDisplay();
-        syncWithCloud();
+    function addToManifest(id) {
+        const qI = document.getElementById(`qty-${id}`), lI = document.getElementById(`loc-${id}`);
+        const qty = parseInt(qI.value); if (!qty || qty <= 0) return;
+        manifest.unshift({ uid: Date.now(), id: id, qty: qty, loc: (lI.value || "NOT_SPECIFIED").toUpperCase(), user: (document.getElementById('user-handle').value || "ANON").toUpperCase() });
+        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
+        qI.value = ''; lI.value = ''; renderManifest(); updateDisplay(); syncWithCloud();
     }
 
-    function openExecuteModal(id) {
-        activeContractId = id;
-        selectedParticipants.clear();
-        const target = document.getElementById('user-list-target');
-        target.innerHTML = '';
-        const myHandle = localStorage.getItem('wikelo-handle') || "OPERATOR";
-        
-        // Example squad list - this would normally be pulled from the sync data
-        const members = [myHandle, "ACE_PILOT", "SALVAGE_LEAD"];
-        
-        members.forEach(m => {
+    function renderManifest() {
+        const list = document.getElementById('manifest-list');
+        const header = list.querySelector('div');
+        list.innerHTML = ''; list.appendChild(header);
+        manifest.forEach(e => {
+            const mat = MATERIALS.find(m => m.id === e.id);
             const div = document.createElement('div');
-            div.className = 'user-checkbox-item';
-            div.innerHTML = `<span>${m}</span><span class="box">[_]</span>`;
-            div.onclick = () => {
-                if(selectedParticipants.has(m)) {
-                    selectedParticipants.delete(m);
-                    div.classList.remove('selected');
-                    div.querySelector('.box').innerText = '[_]';
-                } else {
-                    selectedParticipants.add(m);
-                    div.classList.add('selected');
-                    div.querySelector('.box').innerText = '[X]';
-                }
-            };
-            target.appendChild(div);
+            div.className = 'manifest-entry';
+            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | AUTH: ${e.user}</span></div><button class="del-mini" onclick="removeEntry(${e.uid})">X</button>`;
+            list.appendChild(div);
         });
-        document.getElementById('user-modal').style.display = 'block';
     }
 
-    function finalizeContract() {
-        if (selectedParticipants.size === 0) { alert("ERROR: SELECT PARTICIPANTS"); return; }
-        const c = CONTRACTS.find(x => x.id === activeContractId);
-        const repVal = c.reputationReward || 0;
-        const myHandle = localStorage.getItem('wikelo-handle');
+    function removeEntry(uid) {
+        manifest = manifest.filter(e => e.uid !== uid);
+        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
+        renderManifest(); updateDisplay(); syncWithCloud();
+    }
 
-        c.ingredients.forEach(ing => inventory[ing.id].qty -= ing.qty);
-        
+    async function syncWithCloud() {
+        const squad = document.getElementById('squad-code').value, handle = document.getElementById('user-handle').value;
+        if (!squad || !handle) return;
+        try {
+            const payload = { action: "sync", squadCode: squad, handle: handle, manifest: JSON.stringify(manifest), rep: totalREP };
+            const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+            const result = await res.json();
+            if (result.status === "success") {
+                const lamp = document.getElementById('sync-lamp'); lamp.classList.add('active');
+                if (result.squadUpdates) squadMembers = result.squadUpdates.map(u => u.handle);
+                setTimeout(() => lamp.classList.remove('active'), 1500);
+            }
+        } catch (e) { console.error("SYNC_ERROR", e); }
+    }
+
+    function openRepModal(contractId) {
+        activeContractId = contractId;
+        selectedParticipants.clear();
+        const list = document.getElementById('squad-selector-list');
+        list.innerHTML = '';
+        const myHandle = (document.getElementById('user-handle').value || "ANON").toUpperCase();
+        const members = Array.from(new Set([myHandle, ...squadMembers]));
+        members.forEach(m => {
+            const div = document.createElement('div'); div.className = 'user-option'; div.innerHTML = `<span>${m}</span><b class="box">[_]</b>`;
+            div.onclick = () => {
+                if(selectedParticipants.has(m)) { selectedParticipants.delete(m); div.classList.remove('selected'); div.querySelector('.box').innerText = '[_]'; }
+                else { selectedParticipants.add(m); div.classList.add('selected'); div.querySelector('.box').innerText = '[X]'; }
+            };
+            list.appendChild(div);
+        });
+        document.getElementById('rep-modal').style.display = 'block';
+    }
+
+    function finalizeHandIn() {
+        if (selectedParticipants.size === 0) return;
+        const c = CONTRACTS.find(x => x.id === activeContractId);
+        const repToAward = c.reputationReward || 0;
+        const myHandle = (document.getElementById('user-handle').value || "ANON").toUpperCase();
+
+        // 1. Local Material Deduction from Active Manifest
+        c.ingredients.forEach(ing => {
+            let needed = ing.quantity;
+            for(let i = manifest.length - 1; i >= 0 && needed > 0; i--) {
+                if(manifest[i].id === ing.materialId) {
+                    const take = Math.min(manifest[i].qty, needed);
+                    manifest[i].qty -= take; needed -= take;
+                }
+            }
+        });
+        manifest = manifest.filter(e => e.qty > 0);
+
+        // 2. Personal REP Award
         if (selectedParticipants.has(myHandle)) {
-            totalREP += repVal;
+            totalREP += repToAward;
             document.getElementById('total-rep').innerText = totalREP;
             localStorage.setItem('wikelo-rep', totalREP);
         }
 
-        completed.push({ id: c.id, rep: repVal, team: Array.from(selectedParticipants), date: new Date().toISOString() });
-        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
-        localStorage.setItem('wikelo-completed', JSON.stringify(completed));
-
-        closeModal();
-        renderInventoryTabs();
-        updateDisplay();
-        syncWithCloud();
+        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
+        closeModal(); renderManifest(); updateDisplay(); syncWithCloud();
     }
 
-    async function syncWithCloud() {
-        const squad = document.getElementById('squad-code').value;
-        const handle = document.getElementById('user-handle').value;
-        if (!squad || !handle) return;
-        try {
-            const payload = { action: "sync", squadCode: squad, handle: handle, inventory: JSON.stringify(inventory), completed: JSON.stringify(completed), rep: totalREP };
-            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-            const lamp = document.getElementById('sync-lamp');
-            lamp.style.background = "#00FF00";
-            setTimeout(() => lamp.style.background = "#333", 1500);
-        } catch (e) { console.error(e); }
-    }
+    function closeModal() { document.getElementById('rep-modal').style.display = 'none'; }
 
     function updateDisplay() {
         const grid = document.getElementById('contract-grid');
-        const search = document.getElementById('manifest-search').value.toLowerCase();
+        const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
-        let count = 0;
+        const totals = manifest.reduce((acc, curr) => { acc[curr.id] = (acc[curr.id] || 0) + curr.qty; return acc; }, {});
+        let readyCount = 0;
 
         CONTRACTS.forEach(c => {
-            if (!c.name.toLowerCase().includes(search) && !c.reward.toLowerCase().includes(search)) return;
-            let can = true;
+            const isPinned = tracked.includes(c.id);
+            if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
+            let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
-                const stock = inventory[ing.id] || {qty:0, loc:""};
-                if (stock.qty < ing.qty) can = false;
-                const mat = MATERIALS.find(m => m.id === ing.id);
-                return `<li class="${stock.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${stock.qty}/${ing.qty} ${mat?mat.name:ing.id} ${stock.loc ? '<small style="color:#666">['+stock.loc+']</small>' : ''}</li>`;
+                const stock = totals[ing.materialId] || 0;
+                if (stock < ing.quantity) canCraft = false;
+                const mat = MATERIALS.find(m => m.id === ing.materialId);
+                const squadEntries = manifest.filter(e => e.id === ing.materialId);
+                const authorityHTML = squadEntries.length > 0 ? `<div class="authority-box">` + squadEntries.map(e => `<div style="display:flex; justify-content:space-between;"><span>[${e.qty}] @ ${e.loc}</span><b>${e.user}</b></div>`).join('') + `</div>` : '';
+                return `<li class="${stock >= ing.quantity ? 'status-ready' : 'status-missing'}"><b style="font-size:15px;">${stock}/${ing.quantity} ${mat ? mat.name : ing.materialId}</b>${authorityHTML}</li>`;
             }).join('');
-
-            if (can) count++;
-            if (filterMode === 'all' || (can && filterMode === 'craftable')) {
-                const card = document.createElement('div');
-                card.className = `card ${can ? 'craftable' : ''}`;
-                card.innerHTML = `<b>${c.name}</b><br><small class="reward-text">REWARD: ${c.reward} (+${c.reputationReward || 0} REP)</small><ul class="ingred-list">${ingreds}</ul><button class="btn" ${!can ? 'disabled' : ''} onclick="openExecuteModal('${c.id}')">${can ? '[ HAND_IN_CONTRACT ]' : '[ INCOMPLETE ]'}</button>`;
+            if (canCraft) readyCount++;
+            if (filterMode === 'all' || (filterMode === 'craftable' && canCraft) || (filterMode === 'tracked' && isPinned)) {
+                const card = document.createElement('div'); card.className = `card ${canCraft ? 'craftable' : ''}`;
+                card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:12px;"><span style="font-size:10px; color:#AAA; font-weight:bold; text-transform:uppercase;">${c.category}</span><button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button></div><b style="font-size:18px;">${c.name}</b><small class="reward-label">${c.reward} (+${c.reputationReward || 0} REP)</small><ul class="ingred-list">${ingreds}</ul><button class="btn" style="width:100%" ${!canCraft ? 'disabled' : ''} onclick="openRepModal('${c.id}')">${canCraft ? 'INITIALIZE_HAND_IN' : 'RESOURCES_INSUFFICIENT'}</button>`;
                 grid.appendChild(card);
             }
         });
-        document.getElementById('stats-header').innerText = `MANIFEST :: ${count} READY`;
+        document.getElementById('stats-header').innerHTML = `MANIFEST // <span style="color:var(--t-orange);">${readyCount} READY</span>`;
     }
 
+    function toggleTrack(id) { const idx = tracked.indexOf(id); if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); updateDisplay(); }
+    function setFilter(f) { filterMode = f; document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active')); document.getElementById('f-' + (f === 'craftable' ? 'craft' : f === 'all' ? 'all' : 'track')).classList.add('active'); updateDisplay(); }
     function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
-    function closeModal() { document.getElementById('user-modal').style.display = 'none'; }
-    function setFilter(m) { filterMode = m; updateDisplay(); }
-    function resetAll() { if(confirm("WIPE DATA?")) { localStorage.clear(); location.reload(); } }
+    function resetAll() { if(confirm("PURGE_ALL?")) { manifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); renderManifest(); updateDisplay(); syncWithCloud(); } }
     window.onload = loadSystemData;
 </script>
 </body>
