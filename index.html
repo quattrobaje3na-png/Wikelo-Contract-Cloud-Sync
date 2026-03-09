@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::MASTER_v2.9.6</title>
+    <title>WIKELO::MASTER_v2.9.7</title>
     <style>
         :root { 
             --t-orange: #FF8C00; --bg: #000000; --card: #050505; --border: #FF8C00; 
             --success: #00FF00; --error: #FF0000; --text-main: #FFFFFF; --text-dim: #BBBBBB; --locked: #221100;
         }
-        * { box-sizing: border-box; } 
+        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--t-orange) #000; } 
         body { background: var(--bg); color: var(--text-main); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* --- SIDEBAR --- */
@@ -17,7 +17,7 @@
         .sidebar-header { padding: 20px; border-bottom: 2px solid var(--border); background: #000; }
         .rep-display { background: #111; border: 1px solid var(--t-orange); padding: 15px; margin-bottom: 15px; text-align: center; }
         .rep-val { font-size: 24px; color: var(--t-orange); text-shadow: 0 0 10px var(--t-orange); font-weight: bold; }
-        .sync-panel { background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .sync-panel { background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; width: 100%; }
         .sync-panel input { width: 100%; background: #000; border: 1px solid #555; color: #fff; padding: 10px; font-family: monospace; font-size: 13px; text-transform: uppercase; outline: none; }
 
         .sidebar-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -32,26 +32,29 @@
         .input-row input { background: #000; border: 1px solid #666; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
         .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; }
 
-        /* --- MANIFEST ENTRIES --- */
+        /* --- MANIFEST --- */
         .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
         .m-info b { color: var(--t-orange); font-size: 13px; display: block; }
         .m-info span { font-size: 11px; color: #fff; font-style: italic; }
         .del-mini { color: var(--error); border: 2px solid var(--error); background: transparent; font-size: 11px; cursor: pointer; padding: 6px 10px; font-weight: bold; }
 
-        /* --- GRID & CARDS --- */
+        /* --- MAIN GRID --- */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid var(--border); background: #000; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 30px; padding: 30px; overflow-y: auto; flex: 1; }
+        
         .card { background: var(--card); border: 2px solid var(--border); padding: 25px; position: relative; display: flex; flex-direction: column; }
         .card.locked { opacity: 0.6; background: var(--locked); border-color: #553300; }
         .card.craftable { border-top: 10px solid var(--success); }
+        .rep-req-badge { position: absolute; top: -15px; right: 10px; background: var(--error); color: #fff; padding: 4px 10px; font-size: 10px; font-weight: bold; border: 1px solid #fff; z-index: 5; }
+        
         .reward-label { color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 6px 0; }
         .ingred-list { font-size: 14px; list-style: none; padding: 0; margin: 15px 0; }
         .ingred-list > li { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
 
-        /* Authority Logic */
-        .authority-box { font-size: 11px; margin-top: 10px; background: rgba(255,140,0,0.12); padding: 10px; border-left: 3px solid var(--t-orange); }
-        .pull-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        /* Authority & Pull Logic */
+        .authority-box { font-size: 11px; margin-top: 10px; background: rgba(255,140,0,0.12); padding: 10px; border-left: 3px solid var(--t-orange); color: #FFF; }
+        .pull-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: monospace; }
         .pull-line b { color: var(--success); }
         .pull-line span { color: var(--t-orange); }
         .where-loc { font-size: 10px; color: #00CCFF; margin-top: 4px; display: block; text-transform: uppercase; font-weight: bold; }
@@ -61,6 +64,9 @@
         .btn.active { background: var(--t-orange); color: #000; }
         .pin-btn { background: none; border: none; cursor: pointer; padding: 0; width: 22px; height: 22px; fill: #333; transition: 0.2s; }
         .pin-btn.active { fill: var(--t-orange); }
+        
+        .lamp { width: 8px; height: 8px; border-radius: 50%; background: #222; display: inline-block; margin-right: 8px; }
+        .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
     </style>
 </head>
 <body>
@@ -74,12 +80,18 @@
         <div class="sync-panel">
             <input type="text" id="squad-code" placeholder="SQUAD_CODE..." onchange="saveConfig()">
             <input type="text" id="user-handle" placeholder="HANDLE..." onchange="saveConfig()">
+            <div style="margin-top:5px; font-size:10px; color:var(--t-orange); font-weight: bold;">
+                <div id="sync-lamp" class="lamp"></div>SYNC_STATUS: ACTIVE
+            </div>
         </div>
     </div>
     <div class="sidebar-split">
         <div class="sidebar-scroll-top" id="inventory-tabs"></div>
         <div class="manifest-zone" id="manifest-list">
-            <h3 style="font-size:12px; color:var(--t-orange); margin-bottom:15px; border-bottom:1px solid #333;">[ ACTIVE_MANIFEST ]</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:8px;">
+                <h3 style="font-size:12px; color:var(--t-orange); margin:0;">[ ACTIVE_MANIFEST ]</h3>
+                <button onclick="resetAll()" style="background:transparent; border:1px solid var(--error); color:var(--error); font-size:9px; padding:4px 8px; font-weight:bold;">PURGE</button>
+            </div>
         </div>
     </div>
 </div>
@@ -100,12 +112,12 @@
 </div>
 
 <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywgKsYfx5yZP2cgLDlfsKia5hEcbS5LrJ6v4SQtdzRF4CyBGPYtfz_gnTiNbO3gaCxUA/exec";
     let MATERIALS = [], CONTRACTS = [], LOCATIONS = {}, manifest = [], tracked = [];
     let filterMode = 'craftable', totalREP = parseInt(localStorage.getItem('wikelo-rep')) || 0;
 
     async function loadSystemData() {
         try {
-            // Error Check: Ensure files exist and are being served
             const dRes = await fetch('wikelo-data.json');
             const d = await dRes.json();
             const lRes = await fetch('locations (1).json');
@@ -121,9 +133,10 @@
             document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
             
             renderTabs(); renderManifest(); updateDisplay();
+            setInterval(syncWithCloud, 15000); syncWithCloud();
         } catch (e) { 
             console.error("Critical Load Failure:", e); 
-            alert("TOOL FAILED TO LOAD: Ensure you are running this through a server (Live Server, Python, etc.) and that wikelo-data.json exists.");
+            alert("TOOL FAILED TO LOAD: Ensure you are running this through a server and that wikelo-data.json exists.");
         }
     }
 
@@ -135,23 +148,15 @@
             const mats = MATERIALS.filter(m => m.cat === key);
             if (!mats.length) return;
             const header = document.createElement('div');
-            header.className = 'tab-header';
-            header.innerHTML = `<span>${label}</span><span>+</span>`;
-            header.onclick = () => {
-                const c = header.nextElementSibling;
-                c.classList.toggle('open');
-                header.querySelector('span:last-child').innerText = c.classList.contains('open') ? '-' : '+';
-            };
-            const content = document.createElement('div');
-            content.className = 'tab-content';
+            header.className = 'tab-header'; header.innerHTML = `<span>${label}</span><span>+</span>`;
+            header.onclick = () => { const c = header.nextElementSibling; c.classList.toggle('open'); header.querySelector('span:last-child').innerText = c.classList.contains('open') ? '-' : '+'; };
+            const content = document.createElement('div'); content.className = 'tab-content';
             mats.forEach(mat => {
-                const div = document.createElement('div');
-                div.className = 'input-row';
+                const div = document.createElement('div'); div.className = 'input-row';
                 div.innerHTML = `<span>${mat.name}</span><input type="number" id="qty-${mat.id}" placeholder="0"><input type="text" id="loc-${mat.id}" placeholder="LOC"><button class="add-btn" onclick="addToManifest('${mat.id}')">+</button>`;
                 content.appendChild(div);
             });
-            container.appendChild(header);
-            container.appendChild(content);
+            container.appendChild(header); container.appendChild(content);
         });
     }
 
@@ -160,16 +165,15 @@
         const val = parseInt(q.value); if (!val || val <= 0) return;
         manifest.unshift({ uid: Date.now(), id: id, qty: val, loc: (l.value || "STATION").toUpperCase(), user: (document.getElementById('user-handle').value || "ANON").toUpperCase() });
         localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
-        q.value = ''; l.value = ''; renderManifest(); updateDisplay();
+        q.value = ''; l.value = ''; renderManifest(); updateDisplay(); syncWithCloud();
     }
 
     function renderManifest() {
         const list = document.getElementById('manifest-list');
-        list.innerHTML = '<h3 style="font-size:12px; color:var(--t-orange); margin-bottom:15px; border-bottom:1px solid #333;">[ ACTIVE_MANIFEST ]</h3>';
+        list.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:8px;"><h3 style="font-size:12px; color:var(--t-orange); margin:0;">[ ACTIVE_MANIFEST ]</h3><button onclick="resetAll()" style="background:transparent; border:1px solid var(--error); color:var(--error); font-size:9px; padding:4px 8px; font-weight:bold;">PURGE</button></div>';
         manifest.forEach(e => {
             const mat = MATERIALS.find(m => m.id === e.id);
-            const div = document.createElement('div');
-            div.className = 'manifest-entry';
+            const div = document.createElement('div'); div.className = 'manifest-entry';
             div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | AUTH: ${e.user}</span></div><button class="del-mini" onclick="removeEntry(${e.uid})">X</button>`;
             list.appendChild(div);
         });
@@ -178,7 +182,21 @@
     function removeEntry(uid) {
         manifest = manifest.filter(e => e.uid !== uid);
         localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
-        renderManifest(); updateDisplay();
+        renderManifest(); updateDisplay(); syncWithCloud();
+    }
+
+    async function syncWithCloud() {
+        const squad = document.getElementById('squad-code').value, handle = document.getElementById('user-handle').value;
+        if (!squad || !handle) return;
+        try {
+            const payload = { action: "sync", squadCode: squad, handle: handle, manifest: JSON.stringify(manifest), rep: totalREP };
+            const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+            const result = await res.json();
+            if (result.status === "success") {
+                const lamp = document.getElementById('sync-lamp'); lamp.classList.add('active');
+                setTimeout(() => lamp.classList.remove('active'), 1500);
+            }
+        } catch (e) { console.error("SYNC_FAIL"); }
     }
 
     function updateDisplay() {
@@ -228,6 +246,7 @@
             if (filterMode === 'all' || (filterMode === 'craftable' && canCraft && !repLocked) || (filterMode === 'tracked' && isPinned)) {
                 const card = document.createElement('div'); card.className = `card ${canCraft && !repLocked ? 'craftable' : ''} ${repLocked ? 'locked' : ''}`;
                 card.innerHTML = `
+                    ${repLocked ? `<div class="rep-req-badge">REQ: ${c.repReq} REP</div>` : ''}
                     <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:9px; color:#888;">${c.cat.toUpperCase()}</span>
                         <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')">
                             <svg viewBox="0 0 24 24" width="18"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -245,25 +264,10 @@
         document.getElementById('stats-header').innerHTML = `MANIFEST // <span style="color:var(--t-orange);">${readyCount} READY</span>`;
     }
 
-    function toggleTrack(id) {
-        const idx = tracked.indexOf(id);
-        if(idx > -1) tracked.splice(idx, 1); else tracked.push(id);
-        localStorage.setItem('wikelo-tracked', JSON.stringify(tracked));
-        updateDisplay();
-    }
-
-    function setFilter(f) { 
-        filterMode = f; 
-        document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('f-' + (f === 'craftable' ? 'craft' : f === 'all' ? 'all' : 'track')).classList.add('active');
-        updateDisplay(); 
-    }
-
-    function saveConfig() { 
-        localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); 
-        localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); 
-    }
-
+    function toggleTrack(id) { const idx = tracked.indexOf(id); if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); updateDisplay(); }
+    function setFilter(f) { filterMode = f; document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active')); document.getElementById('f-' + (f === 'craftable' ? 'craft' : f === 'all' ? 'all' : 'track')).classList.add('active'); updateDisplay(); }
+    function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
+    function resetAll() { if(confirm("PURGE_MANIFEST?")) { manifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); renderManifest(); updateDisplay(); syncWithCloud(); } }
     window.onload = loadSystemData;
 </script>
 </body>
