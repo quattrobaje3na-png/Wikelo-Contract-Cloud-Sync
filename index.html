@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SQUAD_v2.9.2</title>
+    <title>WIKELO::LOGISTICS_SQUAD_v2.9.5</title>
     <style>
         :root { 
             --t-orange: #FF8C00; --bg: #000000; --card: #050505; --border: #FF8C00; 
@@ -18,16 +18,14 @@
         .rep-display { background: #111; border: 1px solid var(--t-orange); padding: 15px; margin-bottom: 15px; text-align: center; }
         .rep-val { font-size: 24px; color: var(--t-orange); text-shadow: 0 0 10px var(--t-orange); font-weight: bold; }
 
-        /* Fixed Sync Panel Layout */
         .sync-panel { background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; width: 100%; }
         .sync-panel input { width: 100%; background: #000; border: 1px solid #555; color: #fff; padding: 10px; font-family: monospace; font-size: 13px; text-transform: uppercase; box-sizing: border-box; outline: none; }
-        .sync-panel input:focus { border-color: var(--t-orange); }
 
         .sidebar-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .sidebar-scroll-top { height: 50%; overflow-y: auto; padding: 15px; border-bottom: 2px solid var(--border); background: #050505; }
         .manifest-zone { height: 50%; background: #000; overflow-y: auto; padding: 15px; }
 
-        /* --- TABS --- */
+        /* --- TABS & MANIFEST --- */
         .tab-header { border: 2px solid var(--border); color: var(--t-orange); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; text-transform: uppercase; background: #000; font-weight: bold; }
         .tab-content { display: none; padding: 5px; border: 2px solid var(--border); border-top: none; background: #050505; }
         .tab-content.open { display: block; }
@@ -35,13 +33,17 @@
         .input-row input { background: #000; border: 1px solid #666; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
         .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; }
 
+        .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+        .m-info b { color: var(--t-orange); font-size: 13px; display: block; }
+        .m-info span { font-size: 11px; color: #fff; font-style: italic; }
+
         /* --- MODAL --- */
         #rep-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); }
         .modal-content { background: #050505; border: 2px solid var(--t-orange); width: 400px; margin: 10% auto; padding: 25px; text-align: center; }
         .user-option { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid #333; margin: 8px 0; cursor: pointer; color: #fff; }
         .user-option.selected { border-color: var(--success); background: rgba(0,255,0,0.1); color: var(--success); }
 
-        /* --- CARDS --- */
+        /* --- CARDS & GRID --- */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid var(--border); background: #000; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 30px; padding: 30px; overflow-y: auto; flex: 1; }
@@ -52,11 +54,10 @@
         
         .rep-req-badge { position: absolute; top: -15px; right: 10px; background: var(--error); color: #fff; padding: 4px 10px; font-size: 10px; font-weight: bold; border: 1px solid #fff; z-index: 5; }
         .reward-label { color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 6px 0; }
-        
         .ingred-list { font-size: 14px; list-style: none; padding: 0; margin: 15px 0; }
         .ingred-list > li { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
 
-        /* Authority & Pull Logic */
+        /* Authority/Pull Pull Logic */
         .authority-box { font-size: 11px; margin-top: 10px; background: rgba(255,140,0,0.12); padding: 10px; border-left: 3px solid var(--t-orange); color: #FFF; }
         .pull-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: monospace; }
         .pull-line b { color: var(--success); }
@@ -78,7 +79,7 @@
 <div id="rep-modal">
     <div class="modal-content">
         <h3 style="color:var(--t-orange); margin:0 0 10px 0;">AWARD_FULL_REP</h3>
-        <p style="font-size:10px; color:#888; margin-bottom:20px;">Check all participants. Full REP assigned to each.</p>
+        <p style="font-size:10px; color:#888; margin-bottom:20px;">Check all participants. Everyone receives full REP.</p>
         <div id="squad-selector-list" style="max-height:200px; overflow-y:auto; margin-bottom:15px;"></div>
         <button class="btn" style="border-color:var(--success); color:var(--success); width:100%;" onclick="finalizeHandIn()">[ EXECUTE_DISTRIBUTION ]</button>
         <button class="btn" style="border-color:#444; color:#444; width:100%; margin-top:8px;" onclick="closeModal()">CANCEL</button>
@@ -95,7 +96,7 @@
             <input type="text" id="squad-code" placeholder="SQUAD_CODE..." onchange="saveConfig()">
             <input type="text" id="user-handle" placeholder="HANDLE..." onchange="saveConfig()">
             <div style="margin-top:5px; font-size:10px; color:var(--t-orange); font-weight: bold;">
-                <div id="sync-lamp" class="lamp"></div>STATUS: ENCRYPTED_SYNC_STABLE
+                <div id="sync-lamp" class="lamp"></div>SYNC_STATUS: ACTIVE
             </div>
         </div>
     </div>
@@ -115,11 +116,11 @@
     <div class="header-controls">
         <h1 id="stats-header" style="margin:0; font-size: 18px; color: #fff; letter-spacing:1px;">MANIFEST // <span style="color:var(--t-orange);">0 READY</span></h1>
         <div style="display:flex; align-items:center; gap:10px;">
-            <input type="text" id="manifest-search" style="background:#000; border:2px solid #444; color:#fff; padding:8px; font-size:12px; width:200px;" placeholder="FILTER..." oninput="updateDisplay()">
+            <input type="text" id="manifest-search" style="background:#000; border:2px solid #444; color:#fff; padding:8px; font-size:12px; width:200px;" placeholder="SEARCH..." oninput="updateDisplay()">
             <div class="filter-group" style="display:flex; gap:5px;">
-                <button class="btn" id="f-all" style="padding: 8px 12px;" onclick="setFilter('all')">ALL</button>
-                <button class="btn active" id="f-craft" style="padding: 8px 12px;" onclick="setFilter('craftable')">READY</button>
-                <button class="btn" id="f-track" style="padding: 8px 12px;" onclick="setFilter('tracked')">PINNED</button>
+                <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
+                <button class="btn active" id="f-craft" onclick="setFilter('craftable')">READY</button>
+                <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
             </div>
         </div>
     </div>
@@ -127,7 +128,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIb6Ptkl9cSbwpwg79jnfXaFWVrcYu4FJB6P6hD1lMrZi_y2Zyp58WM5VxQchktMle5A/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywgKsYfx5yZP2cgLDlfsKia5hEcbS5LrJ6v4SQtdzRF4CyBGPYtfz_gnTiNbO3gaCxUA/exec";
     
     let MATERIALS = [], CONTRACTS = [], LOCATIONS = {}, manifest = [], tracked = [], squadMembers = [];
     let filterMode = 'craftable', totalREP = parseInt(localStorage.getItem('wikelo-rep')) || 0;
@@ -137,17 +138,20 @@
         try {
             const dRes = await fetch('wikelo-data.json');
             const d = await dRes.json();
-            const lRes = await fetch('locations.json');
+            const lRes = await fetch('locations (1).json');
             LOCATIONS = lRes.ok ? await lRes.json() : {};
+
             MATERIALS = d.materials; CONTRACTS = d.contracts;
             manifest = JSON.parse(localStorage.getItem('wikelo-manifest-v2')) || [];
             tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
+            
             document.getElementById('total-rep').innerText = totalREP;
             document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
             document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
+            
             renderTabs(); renderManifest(); updateDisplay();
             setInterval(syncWithCloud, 15000); syncWithCloud();
-        } catch (e) { console.error("BOOT_FAIL", e); }
+        } catch (e) { console.error(e); }
     }
 
     function renderTabs() {
@@ -273,7 +277,7 @@
                 return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}">
                     <div style="display:flex; justify-content:space-between; align-items: baseline;">
                         <b style="font-size:15px;">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b>
-                        <span class="where-loc">WHERE: ${LOCATIONS[ing.id] || "UNKNOWN"}</span>
+                        <span class="where-loc">SOURCE: ${LOCATIONS[ing.id] || "UNKNOWN"}</span>
                     </div>
                     ${pullHTML}
                 </li>`;
@@ -293,7 +297,7 @@
                     <small class="reward-label">${c.reward} (+${c.repReward || 0} REP)</small>
                     <ul class="ingred-list">${ingreds}</ul>
                     <button class="btn" ${(!canCraft || repLocked) ? 'disabled' : ''} onclick="openRepModal('${c.id}')">
-                        ${repLocked ? 'REP_LOCK' : canCraft ? 'INITIALIZE_HAND_IN' : 'INSUFFICIENT_STOCK'}
+                        ${repLocked ? 'REP_LOCKED' : canCraft ? 'INITIALIZE_HAND_IN' : 'INSUFFICIENT_STOCK'}
                     </button>`;
                 grid.appendChild(card);
             }
