@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_SQUAD_REP v2.8.1</title>
+    <title>WIKELO::LOGISTICS_SQUAD_REP v2.8.2</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -83,8 +83,8 @@
 
 <div id="rep-modal">
     <div class="modal-content">
-        <h3 style="color:var(--t-orange); margin:0 0 10px 0;">SQUAD_PARTICIPATION</h3>
-        <p style="font-size:10px; color:#888; margin-bottom:20px;">Select contributors. Everyone receives full REP.</p>
+        <h3 style="color:var(--t-orange); margin:0 0 10px 0;">AWARD_FULL_REP</h3>
+        <p style="font-size:10px; color:#888; margin-bottom:20px;">Every selected user receives the full contract REP.</p>
         <div id="squad-selector-list"></div>
         <button class="btn" style="border-color:var(--success); color:var(--success); width:100%; margin-top:15px;" onclick="finalizeHandIn()">[ EXECUTE_DISTRIBUTION ]</button>
         <button class="btn" style="border-color:#444; color:#444; width:100%; margin-top:8px;" onclick="closeModal()">CANCEL</button>
@@ -256,6 +256,7 @@
         const c = CONTRACTS.find(x => x.id === activeContractId);
         const myHandle = (document.getElementById('user-handle').value || "ANON").toUpperCase();
 
+        // Material Deduction matched to new JSON keys
         c.ingredients.forEach(ing => {
             let needed = ing.quantity;
             for(let i = manifest.length - 1; i >= 0 && needed > 0; i--) {
@@ -292,6 +293,7 @@
             if (!c.name.toLowerCase().includes(term) && !c.reward.toLowerCase().includes(term)) return;
 
             let canCraft = true;
+            // Ingredients rendering matched to new JSON keys
             const ingreds = c.ingredients.map(ing => {
                 const stock = totals[ing.materialId] || 0;
                 if (stock < ing.quantity) canCraft = false;
@@ -310,7 +312,6 @@
                     ${repLocked ? `<div class="rep-req-badge">REQ: ${c.reputationRequired} REP</div>` : ''}
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:9px; color:#888;">${c.category.toUpperCase()}</span>
-                        <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')">★</button>
                     </div>
                     <b style="font-size:16px;">${c.name}</b>
                     <small class="reward-label">${c.reward} (+${c.reputationReward || 0} REP)</small>
@@ -324,7 +325,6 @@
         document.getElementById('stats-header').innerHTML = `MANIFEST // <span style="color:var(--t-orange);">${readyCount} READY</span>`;
     }
 
-    function toggleTrack(id) { const idx = tracked.indexOf(id); if(idx > -1) tracked.splice(idx, 1); else tracked.push(id); localStorage.setItem('wikelo-tracked', JSON.stringify(tracked)); updateDisplay(); }
     function setFilter(f) { filterMode = f; document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active')); document.getElementById('f-' + (f === 'craftable' ? 'craft' : 'all')).classList.add('active'); updateDisplay(); }
     function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
     function resetAll() { if(confirm("PURGE?")) { manifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); renderManifest(); updateDisplay(); syncWithCloud(); } }
