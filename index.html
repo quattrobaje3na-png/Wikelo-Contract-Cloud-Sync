@@ -3,31 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIKELO::XP_SQUAD_LOGISTICS v1.9</title>
+    <title>WIKELO::LOGISTICS_SYNC v1.9.2</title>
     <style>
         :root { --t-orange: #FF8C00; --bg: #000; --card: #0a0a0a; --border: #333; --success: #00FF00; --error: #ef4444; }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* --- SIDEBAR --- */
+        /* --- SIDEBAR & REP --- */
         .sidebar { width: 420px; border-right: 2px solid var(--t-orange); padding: 20px; overflow-y: auto; background: #050505; }
-        .xp-display { background: #111; border: 1px solid var(--t-orange); padding: 15px; margin-bottom: 20px; text-align: center; }
-        .xp-val { font-size: 24px; color: var(--t-orange); text-shadow: 0 0 10px var(--t-orange); }
+        .rep-display { background: #111; border: 1px solid var(--t-orange); padding: 15px; margin-bottom: 20px; text-align: center; box-shadow: inset 0 0 10px rgba(255,140,0,0.1); }
+        .rep-val { font-size: 28px; color: var(--t-orange); text-shadow: 0 0 12px var(--t-orange); font-weight: bold; }
         
-        .sync-panel { background: #0a0a0a; padding: 10px; border: 1px solid #222; margin-bottom: 20px; font-size: 10px; }
-        .lamp { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #333; margin-right: 5px; }
-        .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        /* --- MULTI-USER MODAL --- */
+        #user-modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); }
+        .modal-content { background: #0a0a0a; border: 2px solid var(--t-orange); width: 350px; margin: 10% auto; padding: 25px; text-align: center; }
+        .user-checkbox-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #222; margin: 8px 0; cursor: pointer; transition: 0.1s; }
+        .user-checkbox-item:hover { border-color: var(--t-orange); background: #111; }
+        .user-checkbox-item.selected { border-color: var(--success); background: rgba(0,255,0,0.05); color: var(--success); }
 
-        .tab-header { background: #111; border: 1px solid var(--border); color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; font-weight: bold; }
+        /* --- LOGISTICS LAYOUT --- */
+        .tab-header { background: #111; border: 1px solid var(--border); color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; text-transform: uppercase; font-weight: bold; }
         .tab-content { display: none; padding: 5px; border: 1px solid #222; background: #080808; border-top: none; }
         .tab-content.open { display: block; }
         .inv-item { display: grid; grid-template-columns: 1fr 50px 100px; gap: 8px; align-items: center; padding: 6px 8px; border-bottom: 1px solid #111; }
+        .inv-item span { font-size: 10px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .inv-item input { background: #000; border: 1px solid var(--t-orange); color: var(--t-orange); text-align: center; font-size: 11px; outline: none; }
-
-        /* --- MODAL FOR USER CONFIRMATION --- */
-        #user-modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-        .modal-content { background: #111; border: 2px solid var(--t-orange); width: 300px; margin: 15% auto; padding: 20px; text-align: center; }
-        .user-option { display: block; padding: 10px; border: 1px solid #333; margin: 5px 0; cursor: pointer; }
-        .user-option:hover { border-color: var(--t-orange); }
 
         /* --- MAIN CONTENT --- */
         .main-content { flex: 1; padding: 20px; overflow-y: auto; }
@@ -35,47 +34,52 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 15px; }
         .card { background: var(--card); border: 1px solid var(--border); padding: 15px; position: relative; }
         .card.craftable { border-color: var(--success); box-shadow: 0 0 10px rgba(0,255,0,0.1); }
-        .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; }
+        .reward-text { color: #a855f7; font-size: 11px; display: block; margin: 5px 0; font-weight: bold; }
         .ingred-list { font-size: 11px; list-style: none; padding: 0; margin: 10px 0; }
         .status-ready { color: var(--success); }
         .status-missing { color: var(--error); }
+        
         .btn { background: transparent; border: 1px solid var(--t-orange); color: var(--t-orange); padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 10px; font-weight: bold; font-family: monospace; }
+        .btn:hover:not(:disabled) { background: rgba(255,140,0,0.1); }
+        .active-filter { background: var(--t-orange) !important; color: #000 !important; }
     </style>
 </head>
 <body>
 
 <div id="user-modal">
     <div class="modal-content">
-        <h3 style="color:var(--t-orange)">CONFIRM_SQUAD_USERS</h3>
-        <p style="font-size:10px;">Who contributed to this contract?</p>
+        <h3 style="color:var(--t-orange); margin-top:0;">AWARD_FULL_REP</h3>
+        <p style="font-size:10px; color:#888;">Select all participants. Each will receive full REP.</p>
         <div id="user-list-target"></div>
-        <button class="btn" onclick="closeModal()">CANCEL</button>
+        <button class="btn" style="border-color:var(--success); color:var(--success); margin-bottom:5px;" onclick="finalizeContract()">[ EXECUTE_DISTRIBUTION ]</button>
+        <button class="btn" style="border-color:#444; color:#444;" onclick="closeModal()">CANCEL</button>
     </div>
 </div>
 
 <div class="sidebar">
-    <div class="xp-display">
-        <div style="font-size: 10px; letter-spacing: 2px;">TOTAL_REPUTATION_XP</div>
-        <div id="total-xp" class="xp-val">0</div>
+    <div class="rep-display">
+        <div style="font-size: 9px; letter-spacing: 3px; color: #888;">MY_TOTAL_REPUTATION</div>
+        <div id="total-rep" class="rep-val">0</div>
     </div>
-    <div class="sync-panel">
+    <div class="sync-panel" style="background: #111; padding: 15px; border: 1px solid var(--t-orange); margin-bottom: 20px;">
         <input type="text" id="squad-code" class="btn" style="width:100%; text-align:left; margin-bottom:5px;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
         <input type="text" id="user-handle" class="btn" style="width:100%; text-align:left;" placeholder="MY_HANDLE..." onchange="saveConfig()">
-        <div class="sync-status">
-            <div id="sync-lamp" class="lamp"></div> <span id="sync-text">STATUS: LOCAL</span>
+        <div style="display:flex; align-items:center; font-size:10px; margin-top:10px;">
+            <div id="sync-lamp" style="width:10px; height:10px; border-radius:50%; background:#333; margin-right:8px;"></div>
+            <span id="sync-text">STATUS: LOCAL_ONLY</span>
         </div>
     </div>
     <div id="inventory-tabs"></div>
-    <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_DATA ]</button>
+    <button class="btn" style="width: 100%; margin-top: 20px; border-color: var(--error); color: var(--error);" onclick="resetAll()">[ WIPE_LOCAL_DATA ]</button>
 </div>
 
 <div class="main-content">
     <div class="header-controls">
         <h1 id="stats-header">MANIFEST</h1>
-        <div style="display:flex; gap:8px;">
-            <input type="text" id="manifest-search" class="btn" style="width:180px; text-align:left;" placeholder="SEARCH..." oninput="updateDisplay()">
-            <button class="btn" onclick="setFilter('craftable')">READY</button>
-            <button class="btn" onclick="setFilter('all')">ALL</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <input type="text" id="manifest-search" class="btn" style="width:200px; text-align:left;" placeholder="SEARCH..." oninput="updateDisplay()">
+            <button class="btn active-filter" id="f-craft" onclick="setFilter('craftable')">READY</button>
+            <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
         </div>
     </div>
     <div id="contract-grid" class="grid"></div>
@@ -86,20 +90,128 @@
     let MATERIALS = [], CONTRACTS = [];
     let inventory = JSON.parse(localStorage.getItem('wikelo-inventory')) || {};
     let completed = JSON.parse(localStorage.getItem('wikelo-completed')) || [];
-    let totalXP = parseInt(localStorage.getItem('wikelo-xp')) || 0;
-    let squadMembers = []; // Live handles from Sheet
-    let filterMode = 'craftable';
+    let totalREP = parseInt(localStorage.getItem('wikelo-rep')) || 0;
+    
     let activeContractId = null;
+    let selectedParticipants = new Set();
+    let filterMode = 'craftable';
+
+    const CATEGORIES = {
+        "currency": "Currency & Scrips",
+        "ores": "Raw Materials",
+        "creature": "Creature Materials",
+        "medals": "Artifacts & Medals",
+        "tech": "Tech & RCMBNTs",
+        "weapons": "Weapons",
+        "gear": "Gear & Vehicles"
+    };
 
     async function loadSystemData() {
         const response = await fetch('wikelo-data.json');
         const data = await response.json();
         MATERIALS = data.materials;
         CONTRACTS = data.contracts;
-        document.getElementById('total-xp').innerText = totalXP;
+        
+        document.getElementById('total-rep').innerText = totalREP;
+        document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
+        document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
+        
         renderInventoryTabs();
         updateDisplay();
         setInterval(syncWithCloud, 15000);
+        syncWithCloud();
+    }
+
+    function renderInventoryTabs() {
+        const container = document.getElementById('inventory-tabs');
+        container.innerHTML = '';
+        Object.entries(CATEGORIES).forEach(([key, label]) => {
+            const header = document.createElement('div');
+            header.className = 'tab-header';
+            header.innerHTML = `<span>${label}</span><span>[+]</span>`;
+            header.onclick = () => {
+                const content = header.nextElementSibling;
+                content.classList.toggle('open');
+                header.querySelector('span:last-child').innerText = content.classList.contains('open') ? '[-]' : '[+]';
+            };
+            const content = document.createElement('div');
+            content.className = 'tab-content';
+            MATERIALS.filter(m => m.cat === key).forEach(mat => {
+                const data = inventory[mat.id] || { qty: 0, loc: "" };
+                const item = document.createElement('div');
+                item.className = 'inv-item';
+                item.innerHTML = `
+                    <span>${mat.name}</span>
+                    <input type="number" value="${data.qty}" onchange="updateStock('${mat.id}', 'qty', this.value)">
+                    <input type="text" style="width:100px; border-color:#333; color:#888; text-transform:uppercase; font-size:9px;" value="${data.loc}" placeholder="LOC" onchange="updateStock('${mat.id}', 'loc', this.value)">
+                `;
+                content.appendChild(item);
+            });
+            container.appendChild(header);
+            container.appendChild(content);
+        });
+    }
+
+    function updateStock(id, field, val) {
+        if (!inventory[id]) inventory[id] = { qty: 0, loc: "" };
+        if (field === 'qty') inventory[id].qty = Math.max(0, parseInt(val) || 0);
+        else inventory[id].loc = val.toUpperCase();
+        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
+        updateDisplay();
+        syncWithCloud();
+    }
+
+    function openExecuteModal(id) {
+        activeContractId = id;
+        selectedParticipants.clear();
+        const target = document.getElementById('user-list-target');
+        target.innerHTML = '';
+        const myHandle = localStorage.getItem('wikelo-handle') || "OPERATOR";
+        
+        // Example squad list - this would normally be pulled from the sync data
+        const members = [myHandle, "ACE_PILOT", "SALVAGE_LEAD"];
+        
+        members.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'user-checkbox-item';
+            div.innerHTML = `<span>${m}</span><span class="box">[_]</span>`;
+            div.onclick = () => {
+                if(selectedParticipants.has(m)) {
+                    selectedParticipants.delete(m);
+                    div.classList.remove('selected');
+                    div.querySelector('.box').innerText = '[_]';
+                } else {
+                    selectedParticipants.add(m);
+                    div.classList.add('selected');
+                    div.querySelector('.box').innerText = '[X]';
+                }
+            };
+            target.appendChild(div);
+        });
+        document.getElementById('user-modal').style.display = 'block';
+    }
+
+    function finalizeContract() {
+        if (selectedParticipants.size === 0) { alert("ERROR: SELECT PARTICIPANTS"); return; }
+        const c = CONTRACTS.find(x => x.id === activeContractId);
+        const repVal = c.reputationReward || 0;
+        const myHandle = localStorage.getItem('wikelo-handle');
+
+        c.ingredients.forEach(ing => inventory[ing.id].qty -= ing.qty);
+        
+        if (selectedParticipants.has(myHandle)) {
+            totalREP += repVal;
+            document.getElementById('total-rep').innerText = totalREP;
+            localStorage.setItem('wikelo-rep', totalREP);
+        }
+
+        completed.push({ id: c.id, rep: repVal, team: Array.from(selectedParticipants), date: new Date().toISOString() });
+        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
+        localStorage.setItem('wikelo-completed', JSON.stringify(completed));
+
+        closeModal();
+        renderInventoryTabs();
+        updateDisplay();
         syncWithCloud();
     }
 
@@ -107,94 +219,46 @@
         const squad = document.getElementById('squad-code').value;
         const handle = document.getElementById('user-handle').value;
         if (!squad || !handle) return;
-
         try {
-            const payload = { action: "sync", squadCode: squad, handle: handle, inventory: JSON.stringify(inventory), completed: JSON.stringify(completed), xp: totalXP };
-            const resp = await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-            // In a real no-cors fetch, we can't read response, so we'd need a separate GET to refresh squadMembers
-            document.getElementById('sync-lamp').classList.add('active');
-            setTimeout(() => document.getElementById('sync-lamp').classList.remove('active'), 1500);
+            const payload = { action: "sync", squadCode: squad, handle: handle, inventory: JSON.stringify(inventory), completed: JSON.stringify(completed), rep: totalREP };
+            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+            const lamp = document.getElementById('sync-lamp');
+            lamp.style.background = "#00FF00";
+            setTimeout(() => lamp.style.background = "#333", 1500);
         } catch (e) { console.error(e); }
     }
 
-    function openExecuteModal(id) {
-        activeContractId = id;
-        const target = document.getElementById('user-list-target');
-        target.innerHTML = '';
-        
-        // Mocking squad members for this build; normally pulled from Sheet metadata
-        const members = [document.getElementById('user-handle').value, "SQUAD_MEMBER_1", "SQUAD_MEMBER_2"]; 
-        
-        members.forEach(m => {
-            const div = document.createElement('div');
-            div.className = 'user-option';
-            div.innerText = m;
-            div.onclick = () => finalizeContract(m);
-            target.appendChild(div);
-        });
-        document.getElementById('user-modal').style.display = 'block';
-    }
-
-    function finalizeContract(selectedUser) {
-        const c = CONTRACTS.find(x => x.id === activeContractId);
-        if(!c) return;
-
-        // Deduct materials
-        c.ingredients.forEach(ing => inventory[ing.id].qty -= ing.qty);
-        
-        // Update XP
-        const earned = c.reputationReward || 0;
-        totalXP += earned;
-        
-        completed.push({ id: c.id, user: selectedUser, date: new Date().toISOString() });
-        
-        localStorage.setItem('wikelo-inventory', JSON.stringify(inventory));
-        localStorage.setItem('wikelo-completed', JSON.stringify(completed));
-        localStorage.setItem('wikelo-xp', totalXP);
-        
-        document.getElementById('total-xp').innerText = totalXP;
-        closeModal();
-        renderInventoryTabs();
-        updateDisplay();
-        syncWithCloud();
-        alert(`SUCCESS: ${earned} XP assigned to ${selectedUser}`);
-    }
-
-    function closeModal() { document.getElementById('user-modal').style.display = 'none'; }
-    function renderInventoryTabs() { /* Logic same as v1.8 */ }
-    function updateStock(id, field, val) { /* Logic same as v1.8 */ }
-    
     function updateDisplay() {
         const grid = document.getElementById('contract-grid');
+        const search = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
+        let count = 0;
+
         CONTRACTS.forEach(c => {
-            const data = inventory[c.id] || {};
-            let canCraft = true;
+            if (!c.name.toLowerCase().includes(search) && !c.reward.toLowerCase().includes(search)) return;
+            let can = true;
             const ingreds = c.ingredients.map(ing => {
                 const stock = inventory[ing.id] || {qty:0, loc:""};
-                if(stock.qty < ing.qty) canCraft = false;
+                if (stock.qty < ing.qty) can = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
-                return `<li class="${stock.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${stock.qty}/${ing.qty} ${mat?mat.name:ing.id}</li>`;
+                return `<li class="${stock.qty >= ing.qty ? 'status-ready' : 'status-missing'}">${stock.qty}/${ing.qty} ${mat?mat.name:ing.id} ${stock.loc ? '<small style="color:#666">['+stock.loc+']</small>' : ''}</li>`;
             }).join('');
 
-            const show = (filterMode === 'all') || (canCraft && filterMode === 'craftable');
-            if(show) {
+            if (can) count++;
+            if (filterMode === 'all' || (can && filterMode === 'craftable')) {
                 const card = document.createElement('div');
-                card.className = `card ${canCraft ? 'craftable' : ''}`;
-                card.innerHTML = `
-                    <b>${c.name}</b><br>
-                    <small class="reward-text">REWARD: ${c.reward} (+${c.reputationReward || 0} XP)</small>
-                    <ul class="ingred-list">${ingreds}</ul>
-                    <button class="btn" ${!canCraft ? 'disabled' : ''} onclick="openExecuteModal('${c.id}')">
-                        ${canCraft ? '[ HAND_IN_CONTRACT ]' : '[ INSUFFICIENT_STOCK ]'}
-                    </button>`;
+                card.className = `card ${can ? 'craftable' : ''}`;
+                card.innerHTML = `<b>${c.name}</b><br><small class="reward-text">REWARD: ${c.reward} (+${c.reputationReward || 0} REP)</small><ul class="ingred-list">${ingreds}</ul><button class="btn" ${!can ? 'disabled' : ''} onclick="openExecuteModal('${c.id}')">${can ? '[ HAND_IN_CONTRACT ]' : '[ INCOMPLETE ]'}</button>`;
                 grid.appendChild(card);
             }
         });
+        document.getElementById('stats-header').innerText = `MANIFEST :: ${count} READY`;
     }
 
-    function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); }
+    function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
+    function closeModal() { document.getElementById('user-modal').style.display = 'none'; }
     function setFilter(m) { filterMode = m; updateDisplay(); }
+    function resetAll() { if(confirm("WIPE DATA?")) { localStorage.clear(); location.reload(); } }
     window.onload = loadSystemData;
 </script>
 </body>
