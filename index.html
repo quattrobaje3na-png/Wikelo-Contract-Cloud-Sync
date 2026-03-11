@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_CLOUD_SYNC v3.4</title>
+    <title>WIKELO::LOGISTICS_CLOUD_SYNC v4.0</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -29,17 +29,14 @@
         .input-row input { background: #000; border: 1px solid #666; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
         .input-row input:focus { border-color: var(--t-orange); }
         .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; }
-        
         .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; border-left: 3px solid var(--t-orange); }
         .m-info b { color: var(--t-orange); font-size: 13px; display: block; }
         .m-info span { font-size: 11px; color: #FFF; font-style: italic; }
-        
         .entry-controls { display: flex; flex-direction: column; gap: 5px; }
         .del-mini { color: var(--error); border: 1px solid var(--error); background: transparent; font-size: 10px; cursor: pointer; padding: 4px 8px; font-weight: bold; }
         .move-mini { color: var(--success); border: 1px solid var(--success); background: transparent; font-size: 10px; cursor: pointer; padding: 4px 8px; font-weight: bold; }
         .del-mini:hover { background: var(--error); color: #000; }
         .move-mini:hover { background: var(--success); color: #000; }
-
         .sync-status { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--t-orange); font-weight: bold; }
         .lamp { width: 8px; height: 8px; border-radius: 50%; background: #222; border: 1px solid #444; transition: 0.3s; }
         .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); border-color: #fff; }
@@ -73,7 +70,7 @@
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V3.4 ]</h2>
+        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V4.0 ]</h2>
         <div style="display:flex; gap:12px;">
             <input type="text" id="squad-code" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
             <input type="text" id="user-handle" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
@@ -111,6 +108,7 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4ClZYPw3Sd6AwQikc9L5qje6LRHyJkyno15TaFu5AYrmwXd63QYnASlbgGHSQHG4M/exec";
+    const WIKELO_LOCS = ["DASI", "SELO", "KINGA"];
     
     let MATERIALS = [];
     let CONTRACTS = [];
@@ -184,27 +182,23 @@
                 localStorage.setItem('wikelo-manifest-v2', JSON.stringify(sharedManifest));
                 updateDisplay();
             }
-            const lamp = document.getElementById('sync-lamp');
-            lamp.classList.add('active');
-            setTimeout(() => lamp.classList.remove('active'), 1500);
+            document.getElementById('sync-lamp').classList.add('active');
+            setTimeout(() => document.getElementById('sync-lamp').classList.remove('active'), 1500);
         } catch (e) { console.error("SYNC_ERROR", e); }
     }
 
     function addToManifest(id) {
         const qI = document.getElementById(`qty-${id}`);
         const lI = document.getElementById(`loc-${id}`);
-        const hI = document.getElementById('user-handle');
         const qty = parseInt(qI.value);
         if (!qty || qty <= 0) return;
-
         sharedManifest.unshift({
             uid: Date.now(),
             id: id,
             qty: qty,
             loc: (lI.value || "STASH").toUpperCase(),
-            user: (hI.value || "ANON").toUpperCase()
+            user: (document.getElementById('user-handle').value || "ANON").toUpperCase()
         });
-        
         qI.value = ''; lI.value = '';
         syncWithCloud();
     }
@@ -217,17 +211,69 @@
     function moveEntry(uid) {
         const item = sharedManifest.find(e => e.uid === uid);
         if (!item) return;
-        
-        const newLoc = prompt(`ENTER NEW LOCATION FOR ${item.id.toUpperCase()}:`, item.loc);
-        if (newLoc === null) return; // Cancelled
-        
-        const currentHandle = (document.getElementById('user-handle').value || "ANON").toUpperCase();
-        
-        // Update both location and authority
+        const newLoc = prompt(`NEW LOCATION FOR ${item.id.toUpperCase()}:`, item.loc);
+        if (newLoc === null) return;
         item.loc = newLoc.toUpperCase() || "STASH";
-        item.user = currentHandle;
-        
+        item.user = (document.getElementById('user-handle').value || "ANON").toUpperCase();
         syncWithCloud();
+    }
+
+    function handleHandIn(contractId) {
+        const contract = CONTRACTS.find(c => c.id === contractId);
+        if (!contract) return;
+
+        // Find which Wikelo locations actually have needed ingredients
+        const availableLocs = WIKELO_LOCS.filter(loc => {
+            return contract.ingredients.some(ing => {
+                return sharedManifest.some(e => e.id === ing.id && e.loc === loc && e.qty > 0);
+            });
+        });
+
+        if (availableLocs.length === 0) {
+            alert("ERROR: No materials found at DASI, SELO, or KINGA for this contract.");
+            return;
+        }
+
+        const choice = prompt(`SELECT SOURCE INVENTORY:\n${availableLocs.join(", ")}`, availableLocs[0]);
+        if (!choice) return;
+        
+        const selectedLoc = choice.toUpperCase();
+        if (!WIKELO_LOCS.includes(selectedLoc)) {
+            alert("INVALID LOCATION. Must be DASI, SELO, or KINGA.");
+            return;
+        }
+
+        const currentHandle = (document.getElementById('user-handle').value || "ANON").toUpperCase();
+        let modified = false;
+
+        contract.ingredients.forEach(ing => {
+            let needed = ing.qty;
+            // Filter manifest for items matching ID and selected Wikelo location
+            const stacks = sharedManifest.filter(e => e.id === ing.id && e.loc === selectedLoc);
+            
+            stacks.forEach(stack => {
+                if (needed <= 0) return;
+                
+                if (stack.qty <= needed) {
+                    needed -= stack.qty;
+                    stack.qty = 0;
+                } else {
+                    stack.qty -= needed;
+                    needed = 0;
+                }
+                stack.user = currentHandle;
+                modified = true;
+            });
+        });
+
+        if (modified) {
+            // Remove empty stacks
+            sharedManifest = sharedManifest.filter(e => e.qty > 0);
+            alert(`HAND-IN COMPLETE AT ${selectedLoc}. Manifest Updated.`);
+            syncWithCloud();
+        } else {
+            alert("INSUFFICIENT STOCK AT SELECTED LOCATION.");
+        }
     }
 
     function updateDisplay() {
@@ -239,15 +285,7 @@
             const mat = MATERIALS.find(m => m.id === e.id);
             const div = document.createElement('div');
             div.className = 'manifest-entry';
-            div.innerHTML = `
-                <div class="m-info">
-                    <b>${mat ? mat.name : e.id} (x${e.qty})</b>
-                    <span>LOC: ${e.loc} | MOD: ${e.user}</span>
-                </div>
-                <div class="entry-controls">
-                    <button class="move-mini" onclick="moveEntry(${e.uid})">MOVE</button>
-                    <button class="del-mini" onclick="removeEntry(${e.uid})">DEL</button>
-                </div>`;
+            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | MOD: ${e.user}</span></div><div class="entry-controls"><button class="move-mini" onclick="moveEntry(${e.uid})">MOVE</button><button class="del-mini" onclick="removeEntry(${e.uid})">DEL</button></div>`;
             list.appendChild(div);
         });
 
@@ -260,6 +298,7 @@
         CONTRACTS.forEach(c => {
             const isPinned = tracked.includes(c.id);
             if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
+            
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
                 const stock = totals[ing.id] || 0;
@@ -270,11 +309,12 @@
                 const authHTML = contributors.length > 0 ? `<div class="authority-box">` + contributors.map(e => `<div class="auth-line"><span>[${e.qty}] @ ${e.loc}</span><b>${e.user}</b></div>`).join('') + `</div>` : '';
                 return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}"><div style="display:flex; justify-content:space-between; align-items: baseline;"><b style="color:${stock >= ing.qty ? 'var(--success)' : 'inherit'}">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b><span class="where-loc" style="text-align:right;"><span class="where-tag">LOC:</span>${locStr}</span></div>${authHTML}</li>`;
             }).join('');
+            
             if (canCraft) readyCount++;
             if (filterMode === 'all' || (filterMode === 'craftable' && canCraft) || (filterMode === 'tracked' && isPinned)) {
                 const card = document.createElement('div');
                 card.className = `card ${canCraft ? 'craftable' : ''}`;
-                card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:12px;"><span style="font-size:10px; color:#AAA; font-weight:bold; text-transform:uppercase;">${c.cat}</span><button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button></div><b style="font-size:18px;">${c.name}</b><small class="reward-label">${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn" style="width:100%" ${!canCraft ? 'disabled' : ''}>${canCraft ? 'INITIALIZE_HAND_IN' : 'INSUFFICIENT'}</button>`;
+                card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:12px;"><span style="font-size:10px; color:#AAA; font-weight:bold; text-transform:uppercase;">${c.cat}</span><button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button></div><b style="font-size:18px;">${c.name}</b><small class="reward-label">${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn" style="width:100%" onclick="handleHandIn('${c.id}')" ${!canCraft ? 'disabled' : ''}>${canCraft ? 'INITIALIZE_HAND_IN' : 'INSUFFICIENT'}</button>`;
                 grid.appendChild(card);
             }
         });
