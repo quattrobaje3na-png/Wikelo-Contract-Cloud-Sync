@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_CLOUD_SYNC v4.0</title>
+    <title>WIKELO::LOGISTICS_SYNC v4.3</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -13,109 +13,114 @@
             --success: #00FF00;
             --error: #FF0000;
             --text-main: #FFFFFF;
+            --accent: #a855f7;
         }
         * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--t-orange) #000; } 
         body { background: var(--bg); color: var(--text-main); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
         .sidebar { width: 480px; border-right: 2px solid var(--border); display: flex; flex-direction: column; background: var(--bg); flex-shrink: 0; height: 100vh; }
-        .sidebar-header { padding: 20px; border-bottom: 2px solid var(--border); background: #000; }
-        .sidebar-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .sidebar-scroll-top { height: 50%; overflow-y: auto; padding: 15px; border-bottom: 2px solid var(--border); background: #050505; }
-        .manifest-zone { height: 50%; background: #000; overflow-y: auto; padding: 15px; }
-        .tab-header { border: 2px solid var(--border); color: var(--t-orange); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; text-transform: uppercase; background: #000; font-weight: bold; letter-spacing: 1px; }
-        .tab-content { display: none; padding: 5px; border: 2px solid var(--border); border-top: none; background: #050505; }
+        .sidebar-header { padding: 20px; border-bottom: 2px solid var(--border); background: #000; flex-shrink: 0; }
+        
+        /* RESIZABLE CONTAINERS */
+        #pane-inputs { height: 350px; min-height: 100px; overflow-y: auto; padding: 15px; background: #050505; }
+        #pane-manifest { flex: 1; overflow-y: auto; padding: 15px; background: #000; display: flex; flex-direction: column; }
+        
+        /* DRAG HANDLE */
+        .resizer { height: 8px; background: #222; cursor: row-resize; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .resizer:hover { background: var(--t-orange); }
+
+        .log-zone { height: 120px; background: #050505; overflow-y: auto; padding: 10px; font-size: 10px; border-top: 2px solid var(--accent); flex-shrink: 0; }
+
+        .tab-header { border: 2px solid var(--border); color: var(--t-orange); padding: 10px; cursor: pointer; display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px; text-transform: uppercase; }
+        .tab-content { display: none; padding: 5px; border: 1px solid var(--border); border-top: none; }
         .tab-content.open { display: block; }
-        .input-row { display: grid; grid-template-columns: 1fr 50px 80px 45px; gap: 8px; align-items: center; padding: 12px 6px; border-bottom: 1px solid #333; }
-        .input-row span { font-size: 12px; color: #fff; }
-        .input-row input { background: #000; border: 1px solid #666; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
-        .input-row input:focus { border-color: var(--t-orange); }
-        .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; }
-        .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; border-left: 3px solid var(--t-orange); }
-        .m-info b { color: var(--t-orange); font-size: 13px; display: block; }
-        .m-info span { font-size: 11px; color: #FFF; font-style: italic; }
-        .entry-controls { display: flex; flex-direction: column; gap: 5px; }
-        .del-mini { color: var(--error); border: 1px solid var(--error); background: transparent; font-size: 10px; cursor: pointer; padding: 4px 8px; font-weight: bold; }
-        .move-mini { color: var(--success); border: 1px solid var(--success); background: transparent; font-size: 10px; cursor: pointer; padding: 4px 8px; font-weight: bold; }
-        .del-mini:hover { background: var(--error); color: #000; }
-        .move-mini:hover { background: var(--success); color: #000; }
-        .sync-status { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--t-orange); font-weight: bold; }
-        .lamp { width: 8px; height: 8px; border-radius: 50%; background: #222; border: 1px solid #444; transition: 0.3s; }
-        .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); border-color: #fff; }
+
+        .input-row { display: grid; grid-template-columns: 1fr 50px 80px 40px; gap: 5px; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; }
+        .input-row input { background: #000; border: 1px solid #444; color: #fff; padding: 5px; font-size: 11px; width: 100%; }
+        .add-btn { background: var(--t-orange); border: none; font-weight: bold; cursor: pointer; height: 28px; }
+
+        .manifest-list-container { flex: 1; overflow-y: auto; margin-top: 10px; }
+        .manifest-entry { background: #0a0a0a; border: 1px solid #333; padding: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr auto; border-left: 3px solid var(--t-orange); }
+        .m-info b { color: var(--t-orange); font-size: 12px; display: block; }
+        .m-info span { font-size: 10px; opacity: 0.8; }
+        
+        .entry-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .btn-mini { background: transparent; font-size: 9px; cursor: pointer; padding: 4px; font-weight: bold; border: 1px solid; text-align: center; }
+        .btn-move { color: #fff; border-color: #555; }
+        .btn-wikelo { color: var(--t-orange); border-color: var(--t-orange); }
+        .btn-del { color: var(--error); border-color: var(--error); grid-column: span 2; }
+
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid var(--border); background: #000; }
-        .search-wrap { display: flex; align-items: center; gap: 10px; }
-        .search-input { background: #000; border: 2px solid #444; color: #fff; padding: 10px; font-size: 12px; width: 220px; outline: none; }
-        .pin-btn { background: transparent; border: none; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
-        .pin-btn svg { width: 22px; height: 22px; fill: none; stroke: var(--t-orange); stroke-width: 2.5; }
-        .pin-btn.active svg { fill: var(--t-orange); }
+        .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid var(--border); background: #000; flex-shrink: 0; }
         .scroll-area { flex: 1; overflow-y: auto; padding: 30px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 30px; }
-        .card { background: var(--card); border: 2px solid var(--border); padding: 25px; position: relative; }
-        .card.craftable { border-top: 10px solid var(--success); }
-        .reward-label { color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 6px 0; display: block; letter-spacing: 1.5px; }
-        .ingred-list { font-size: 14px; list-style: none; padding: 0; margin: 15px 0; }
-        .ingred-list > li { margin-bottom: 22px; border-bottom: 1px solid #333; padding-bottom: 14px; }
-        .authority-box { font-size: 11px; margin-top: 10px; background: rgba(255,140,0,0.12); padding: 10px; border-left: 3px solid var(--t-orange); color: #FFF; }
-        .auth-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
-        .auth-line b { color: var(--t-orange); }
-        .where-loc { font-size: 10px; color: #DDD; margin-top: 4px; display: block; line-height: 1.4; }
-        .where-tag { color: var(--t-orange); font-weight: bold; margin-right: 5px; }
-        .btn { background: transparent; border: 2px solid var(--border); color: var(--t-orange); padding: 12px 24px; cursor: pointer; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-        .btn:hover:not(:disabled) { background: var(--t-orange); color: #000; }
-        .btn.active { background: var(--t-orange); color: #000; }
-        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; }
-        @media (max-width: 1024px) { .sidebar { width: 100%; height: auto; border-right: none; } body { flex-direction: column; overflow-y: auto; } .sidebar-split { height: 900px; } }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 25px; }
+        .card { background: var(--card); border: 2px solid var(--border); padding: 20px; position: relative; }
+        .card.craftable { border-top: 8px solid var(--success); }
+        .reward-label { color: var(--accent); font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 5px 0; display: block; }
+        .authority-box { font-size: 10px; margin-top: 8px; background: rgba(255,140,0,0.08); padding: 8px; border-left: 2px solid var(--t-orange); }
+        .btn-handin { background: transparent; border: 2px solid var(--border); color: var(--t-orange); padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+        .btn-handin:disabled { border-color: #333; color: #333; }
+        
+        @media (max-width: 1024px) { .sidebar { width: 100%; height: auto; } body { flex-direction: column; } .resizer { display: none; } }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V4.0 ]</h2>
-        <div style="display:flex; gap:12px;">
-            <input type="text" id="squad-code" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
-            <input type="text" id="user-handle" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
-        </div>
-        <div class="sync-status">
-            <div id="sync-lamp" class="lamp"></div>
-            <span>SHARED_POOL: READY</span>
+        <h2 style="color:var(--t-orange); font-size:14px; margin:0 0 10px 0; letter-spacing: 2px;">[ LOGISTICS_SYNC_V4.3 ]</h2>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="squad-code" style="background:#000; border:1px solid #444; color:#fff; padding:8px; font-size:12px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
+            <input type="text" id="user-handle" style="background:#000; border:1px solid #444; color:#fff; padding:8px; font-size:12px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
         </div>
     </div>
-    <div class="sidebar-split">
-        <div class="sidebar-scroll-top" id="inventory-tabs"></div>
-        <div class="manifest-zone" id="manifest-list">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #333; padding-bottom:10px;">
-                <h3 style="font-size:13px; color:var(--t-orange); margin:0; letter-spacing: 2px;">[ SHARED_POOL ]</h3>
-                <button onclick="resetAll()" style="background:transparent; border:2px solid var(--error); color:var(--error); font-size:10px; padding:6px 12px; cursor:pointer; font-weight:bold;">GLOBAL_PURGE</button>
-            </div>
+
+    <div id="pane-inputs"></div>
+
+    <div class="resizer" id="drag-bar"></div>
+
+    <div id="pane-manifest">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:5px; flex-shrink:0;">
+            <h3 style="font-size:11px; color:var(--t-orange); margin:0;">[ SHARED_POOL ]</h3>
+            <button onclick="resetAll()" style="background:transparent; border:1px solid var(--error); color:var(--error); font-size:9px; padding:2px 5px; cursor:pointer;">PURGE</button>
         </div>
+        <div class="manifest-list-container" id="manifest-list"></div>
+    </div>
+
+    <div class="log-zone" id="transaction-logs">
+        <h3 style="font-size:10px; color:var(--accent); margin:0 0 5px 0;">[ RECENT_TRANSACTIONS ]</h3>
     </div>
 </div>
 
 <div class="main-content">
     <div class="header-controls">
-        <h1 id="stats-header" style="margin:0; font-size: 20px; letter-spacing: 2px; color: #fff;">MANIFEST // <span style="color:var(--t-orange);">0 READY</span></h1>
-        <div class="search-wrap">
-            <input type="text" id="manifest-search" class="search-input" placeholder="SEARCH CONTRACTS..." oninput="updateDisplay()">
-            <div class="filter-group">
-                <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
-                <button class="btn active" id="f-craft" onclick="setFilter('craftable')">READY</button>
-                <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
-            </div>
-        </div>
+        <h1 id="stats-header" style="margin:0; font-size: 18px; color: #fff;">MANIFEST // <span style="color:var(--t-orange);">0 READY</span></h1>
+        <input type="text" id="manifest-search" style="background:#000; border:1px solid #444; color:#fff; padding:8px; font-size:12px; width:200px;" placeholder="SEARCH CONTRACTS..." oninput="updateDisplay()">
     </div>
     <div class="scroll-area"><div id="contract-grid" class="grid"></div></div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4ClZYPw3Sd6AwQikc9L5qje6LRHyJkyno15TaFu5AYrmwXd63QYnASlbgGHSQHG4M/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWDSQJGrVLvUBlgt0WcVbOujruEzEAVTVOvI7XoCiyxmq_fS1WUZES4rwEXqcmgU7h/exec";
     const WIKELO_LOCS = ["DASI", "SELO", "KINGA"];
     
-    let MATERIALS = [];
-    let CONTRACTS = [];
-    let LOCATIONS = {};
-    let sharedManifest = []; 
-    let tracked = [];
-    let filterMode = 'craftable';
+    let MATERIALS = [], CONTRACTS = [], LOCATIONS = {}, sharedManifest = [], tracked = [], filterMode = 'craftable';
+
+    // RESIZER LOGIC
+    const resizer = document.getElementById('drag-bar');
+    const topPane = document.getElementById('pane-inputs');
+    let isDragging = false;
+
+    resizer.addEventListener('mousedown', (e) => { isDragging = true; document.body.style.cursor = 'row-resize'; });
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const sidebarTop = document.querySelector('.sidebar-header').offsetHeight;
+        const newHeight = e.clientY - sidebarTop;
+        if (newHeight > 100 && newHeight < (window.innerHeight - 300)) {
+            topPane.style.height = newHeight + 'px';
+        }
+    });
+    document.addEventListener('mouseup', () => { isDragging = false; document.body.style.cursor = 'default'; });
 
     async function loadSystemData() {
         try {
@@ -123,218 +128,150 @@
             const d = await dRes.json();
             const lRes = await fetch('locations.json');
             LOCATIONS = lRes.ok ? await lRes.json() : {};
-            MATERIALS = d.materials || [];
-            CONTRACTS = d.contracts || [];
+            MATERIALS = d.materials || []; CONTRACTS = d.contracts || [];
             sharedManifest = JSON.parse(localStorage.getItem('wikelo-manifest-v2')) || [];
-            tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
             document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
             document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
-            renderTabs();
-            updateDisplay();
-            setInterval(syncWithCloud, 15000);
-            syncWithCloud();
+            renderTabs(); updateDisplay();
+            setInterval(syncWithCloud, 15000); syncWithCloud();
         } catch (e) { console.error(e); }
     }
 
     function renderTabs() {
-        const container = document.getElementById('inventory-tabs');
+        const container = document.getElementById('pane-inputs');
         container.innerHTML = '';
         const cats = { "currency": "Currency", "ores": "Ores", "creature": "Fauna", "medals": "Artifacts", "tech": "Tech", "weapons": "Weapons", "gear": "Gear" };
         Object.entries(cats).forEach(([key, label]) => {
             const mats = MATERIALS.filter(m => m.cat === key);
             if (mats.length === 0) return;
             const header = document.createElement('div');
-            header.className = 'tab-header';
-            header.innerHTML = `<span>${label}</span><span>+</span>`;
-            header.onclick = () => {
-                const c = header.nextElementSibling;
-                c.classList.toggle('open');
-                header.querySelector('span:last-child').innerText = c.classList.contains('open') ? '-' : '+';
-            };
+            header.className = 'tab-header'; header.innerHTML = `<span>${label}</span>`;
+            header.onclick = () => header.nextElementSibling.classList.toggle('open');
             const content = document.createElement('div');
             content.className = 'tab-content';
             mats.forEach(mat => {
                 const row = document.createElement('div');
                 row.className = 'input-row';
-                row.innerHTML = `<span>${mat.name}</span><input type="number" id="qty-${mat.id}" placeholder="QTY"><input type="text" id="loc-${mat.id}" placeholder="LOC"><button class="add-btn" onclick="addToManifest('${mat.id}')">+</button>`;
+                row.innerHTML = `<span>${mat.name}</span><input type="number" id="qty-${mat.id}"><input type="text" id="loc-${mat.id}"><button class="add-btn" onclick="addToManifest('${mat.id}')">+</button>`;
                 content.appendChild(row);
             });
-            container.appendChild(header);
-            container.appendChild(content);
+            container.appendChild(header); container.appendChild(content);
         });
     }
 
-    async function syncWithCloud(action = "sync") {
+    async function syncWithCloud(action = "sync", newLog = null) {
         const squad = document.getElementById('squad-code').value;
         const handle = document.getElementById('user-handle').value;
         if (!squad || !handle) return;
         try {
-            const payload = { 
-                action: action, 
-                squadCode: squad.toUpperCase(), 
-                handle: handle.toUpperCase(), 
-                manifest: JSON.stringify(sharedManifest) 
-            };
+            const payload = { action, squadCode: squad.toUpperCase(), handle: handle.toUpperCase(), manifest: JSON.stringify(sharedManifest), newLog };
             const response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-            const cloudData = await response.json();
-            if (Array.isArray(cloudData)) {
-                sharedManifest = cloudData;
+            const data = await response.json();
+            if (data.manifest) {
+                sharedManifest = data.manifest;
                 localStorage.setItem('wikelo-manifest-v2', JSON.stringify(sharedManifest));
-                updateDisplay();
+                renderLogs(data.logs); updateDisplay();
             }
-            document.getElementById('sync-lamp').classList.add('active');
-            setTimeout(() => document.getElementById('sync-lamp').classList.remove('active'), 1500);
-        } catch (e) { console.error("SYNC_ERROR", e); }
+        } catch (e) { console.error(e); }
+    }
+
+    function renderLogs(logs) {
+        const zone = document.getElementById('transaction-logs');
+        const header = zone.querySelector('h3');
+        zone.innerHTML = ''; zone.appendChild(header);
+        if (!logs) return;
+        logs.forEach(l => {
+            const div = document.createElement('div'); div.className = 'log-entry';
+            div.innerHTML = `<i>${new Date(l.time).toLocaleTimeString()}</i> <b>${l.user}</b>: ${l.contract} @ ${l.source}`;
+            zone.appendChild(div);
+        });
     }
 
     function addToManifest(id) {
-        const qI = document.getElementById(`qty-${id}`);
-        const lI = document.getElementById(`loc-${id}`);
-        const qty = parseInt(qI.value);
-        if (!qty || qty <= 0) return;
-        sharedManifest.unshift({
-            uid: Date.now(),
-            id: id,
-            qty: qty,
-            loc: (lI.value || "STASH").toUpperCase(),
-            user: (document.getElementById('user-handle').value || "ANON").toUpperCase()
-        });
-        qI.value = ''; lI.value = '';
-        syncWithCloud();
-    }
-
-    function removeEntry(uid) {
-        sharedManifest = sharedManifest.filter(e => e.uid !== uid);
-        syncWithCloud();
+        const qI = document.getElementById(`qty-${id}`), lI = document.getElementById(`loc-${id}`);
+        if (!parseInt(qI.value)) return;
+        sharedManifest.unshift({ uid: Date.now(), id: id, qty: parseInt(qI.value), loc: (lI.value || "STASH").toUpperCase(), user: (document.getElementById('user-handle').value || "ANON").toUpperCase() });
+        qI.value = ''; lI.value = ''; syncWithCloud();
     }
 
     function moveEntry(uid) {
-        const item = sharedManifest.find(e => e.uid === uid);
-        if (!item) return;
-        const newLoc = prompt(`NEW LOCATION FOR ${item.id.toUpperCase()}:`, item.loc);
-        if (newLoc === null) return;
-        item.loc = newLoc.toUpperCase() || "STASH";
-        item.user = (document.getElementById('user-handle').value || "ANON").toUpperCase();
-        syncWithCloud();
+        const item = sharedManifest.find(e => e.uid === uid); if (!item) return;
+        const newLoc = prompt("NEW LOCATION:", item.loc); if (!newLoc) return;
+        item.loc = newLoc.toUpperCase(); item.user = document.getElementById('user-handle').value.toUpperCase(); syncWithCloud();
+    }
+
+    function dispatchToWikelo(uid) {
+        const item = sharedManifest.find(e => e.uid === uid); if (!item) return;
+        const choice = prompt(`DISPATCH ${item.id.toUpperCase()} TO:\n${WIKELO_LOCS.join(", ")}`, WIKELO_LOCS[0]);
+        if (!choice) return;
+        const selected = choice.toUpperCase();
+        if (!WIKELO_LOCS.includes(selected)) return alert("INVALID WIKELO LOCATION.");
+        item.loc = selected; item.user = (document.getElementById('user-handle').value || "ANON").toUpperCase(); syncWithCloud();
     }
 
     function handleHandIn(contractId) {
         const contract = CONTRACTS.find(c => c.id === contractId);
-        if (!contract) return;
-
-        // Find which Wikelo locations actually have needed ingredients
-        const availableLocs = WIKELO_LOCS.filter(loc => {
-            return contract.ingredients.some(ing => {
-                return sharedManifest.some(e => e.id === ing.id && e.loc === loc && e.qty > 0);
-            });
-        });
-
-        if (availableLocs.length === 0) {
-            alert("ERROR: No materials found at DASI, SELO, or KINGA for this contract.");
-            return;
-        }
-
-        const choice = prompt(`SELECT SOURCE INVENTORY:\n${availableLocs.join(", ")}`, availableLocs[0]);
-        if (!choice) return;
-        
-        const selectedLoc = choice.toUpperCase();
-        if (!WIKELO_LOCS.includes(selectedLoc)) {
-            alert("INVALID LOCATION. Must be DASI, SELO, or KINGA.");
-            return;
-        }
-
-        const currentHandle = (document.getElementById('user-handle').value || "ANON").toUpperCase();
-        let modified = false;
+        const availableLocs = WIKELO_LOCS.filter(loc => contract.ingredients.some(ing => sharedManifest.some(e => e.id === ing.id && e.loc === loc)));
+        if (!availableLocs.length) return alert("NO STOCK AT WIKELO LOCATIONS.");
+        const selectedLoc = prompt(`SOURCE: ${availableLocs.join(", ")}`, availableLocs[0]).toUpperCase();
+        if (!WIKELO_LOCS.includes(selectedLoc)) return;
 
         contract.ingredients.forEach(ing => {
             let needed = ing.qty;
-            // Filter manifest for items matching ID and selected Wikelo location
-            const stacks = sharedManifest.filter(e => e.id === ing.id && e.loc === selectedLoc);
-            
-            stacks.forEach(stack => {
+            sharedManifest.filter(e => e.id === ing.id && e.loc === selectedLoc).forEach(stack => {
                 if (needed <= 0) return;
-                
-                if (stack.qty <= needed) {
-                    needed -= stack.qty;
-                    stack.qty = 0;
-                } else {
-                    stack.qty -= needed;
-                    needed = 0;
-                }
-                stack.user = currentHandle;
-                modified = true;
+                let take = Math.min(stack.qty, needed);
+                stack.qty -= take; needed -= take; stack.user = document.getElementById('user-handle').value.toUpperCase();
             });
         });
-
-        if (modified) {
-            // Remove empty stacks
-            sharedManifest = sharedManifest.filter(e => e.qty > 0);
-            alert(`HAND-IN COMPLETE AT ${selectedLoc}. Manifest Updated.`);
-            syncWithCloud();
-        } else {
-            alert("INSUFFICIENT STOCK AT SELECTED LOCATION.");
-        }
+        sharedManifest = sharedManifest.filter(e => e.qty > 0);
+        syncWithCloud("sync", { contract: contract.name, reward: contract.reward, source: selectedLoc });
     }
 
     function updateDisplay() {
         const list = document.getElementById('manifest-list');
-        const listHeader = list.querySelector('div');
-        list.innerHTML = ''; list.appendChild(listHeader);
-        
+        list.innerHTML = '';
         sharedManifest.forEach(e => {
             const mat = MATERIALS.find(m => m.id === e.id);
-            const div = document.createElement('div');
-            div.className = 'manifest-entry';
-            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | MOD: ${e.user}</span></div><div class="entry-controls"><button class="move-mini" onclick="moveEntry(${e.uid})">MOVE</button><button class="del-mini" onclick="removeEntry(${e.uid})">DEL</button></div>`;
+            const div = document.createElement('div'); div.className = 'manifest-entry';
+            div.innerHTML = `
+                <div class="m-info">
+                    <b>${mat?mat.name:e.id} (x${e.qty})</b>
+                    <span>${e.loc} | ${e.user}</span>
+                </div>
+                <div class="entry-controls">
+                    <button class="btn-mini btn-move" onclick="moveEntry(${e.uid})">MOV</button>
+                    <button class="btn-mini btn-wikelo" onclick="dispatchToWikelo(${e.uid})">WKL</button>
+                    <button class="btn-mini btn-del" onclick="removeEntry(${e.uid})">DEL</button>
+                </div>`;
             list.appendChild(div);
         });
 
-        const grid = document.getElementById('contract-grid');
-        const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
+        const grid = document.getElementById('contract-grid'), search = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
-        const totals = sharedManifest.reduce((acc, curr) => { acc[curr.id] = (acc[curr.id] || 0) + curr.qty; return acc; }, {});
-
+        const totals = sharedManifest.reduce((acc, curr) => { acc[curr.id] = (acc[curr.id]||0) + curr.qty; return acc; }, {});
         let readyCount = 0;
+
         CONTRACTS.forEach(c => {
-            const isPinned = tracked.includes(c.id);
-            if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
-            
+            if (!c.name.toLowerCase().includes(search) && !c.reward.toLowerCase().includes(search)) return;
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
-                const stock = totals[ing.id] || 0;
-                if (stock < ing.qty) canCraft = false;
-                const mat = MATERIALS.find(m => m.id === ing.id);
-                const locStr = LOCATIONS[ing.id] || "DATA_UNAVAILABLE";
+                const stock = totals[ing.id] || 0; if (stock < ing.qty) canCraft = false;
                 const contributors = sharedManifest.filter(e => e.id === ing.id);
-                const authHTML = contributors.length > 0 ? `<div class="authority-box">` + contributors.map(e => `<div class="auth-line"><span>[${e.qty}] @ ${e.loc}</span><b>${e.user}</b></div>`).join('') + `</div>` : '';
-                return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}"><div style="display:flex; justify-content:space-between; align-items: baseline;"><b style="color:${stock >= ing.qty ? 'var(--success)' : 'inherit'}">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b><span class="where-loc" style="text-align:right;"><span class="where-tag">LOC:</span>${locStr}</span></div>${authHTML}</li>`;
+                return `<li><b style="color:${stock>=ing.qty?'var(--success)':'inherit'}">${stock}/${ing.qty} ${MATERIALS.find(m=>m.id===ing.id)?.name || ing.id}</b><div class="authority-box">${contributors.map(e=>`<div>[${e.qty}] @ ${e.loc} - ${e.user}</div>`).join('')}</div></li>`;
             }).join('');
-            
             if (canCraft) readyCount++;
-            if (filterMode === 'all' || (filterMode === 'craftable' && canCraft) || (filterMode === 'tracked' && isPinned)) {
-                const card = document.createElement('div');
-                card.className = `card ${canCraft ? 'craftable' : ''}`;
-                card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:12px;"><span style="font-size:10px; color:#AAA; font-weight:bold; text-transform:uppercase;">${c.cat}</span><button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button></div><b style="font-size:18px;">${c.name}</b><small class="reward-label">${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn" style="width:100%" onclick="handleHandIn('${c.id}')" ${!canCraft ? 'disabled' : ''}>${canCraft ? 'INITIALIZE_HAND_IN' : 'INSUFFICIENT'}</button>`;
-                grid.appendChild(card);
-            }
+            const card = document.createElement('div'); card.className = `card ${canCraft?'craftable':''}`;
+            card.innerHTML = `<b style="font-size:16px;">${c.name}</b><small class="reward-label">${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn-handin" onclick="handleHandIn('${c.id}')" ${!canCraft?'disabled' : ''}>INITIALIZE_HAND_IN</button>`;
+            grid.appendChild(card);
         });
         document.getElementById('stats-header').innerHTML = `MANIFEST // <span style="color:var(--t-orange);">${readyCount} READY</span>`;
     }
 
-    function toggleTrack(id) {
-        const idx = tracked.indexOf(id);
-        if(idx > -1) tracked.splice(idx, 1); else tracked.push(id);
-        localStorage.setItem('wikelo-tracked', JSON.stringify(tracked));
-        updateDisplay();
-    }
-    function setFilter(f) { 
-        filterMode = f; 
-        document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('f-' + (f === 'craftable' ? 'craft' : f === 'all' ? 'all' : 'track')).classList.add('active');
-        updateDisplay(); 
-    }
+    function removeEntry(uid) { sharedManifest = sharedManifest.filter(e => e.uid !== uid); syncWithCloud(); }
+    function setFilter(f) { filterMode = f; updateDisplay(); }
     function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
-    function resetAll() { if(confirm("GLOBAL_PURGE: DELETE ALL SHARED DATA?")) { sharedManifest = []; syncWithCloud("purge"); } }
+    function resetAll() { if(confirm("PURGE ALL DATA?")) { sharedManifest = []; syncWithCloud("purge"); } }
     window.onload = loadSystemData;
 </script>
 </body>
