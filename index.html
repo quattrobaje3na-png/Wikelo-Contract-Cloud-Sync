@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_CLOUD_SYNC v1.0</title>
+    <title>WIKELO::LOGISTICS_CLOUD_SYNC v2.0</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -135,7 +135,7 @@
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V2.6.1 ]</h2>
+        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V2.0 ]</h2>
         <div style="display:flex; gap:12px;">
             <input type="text" id="squad-code" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
             <input type="text" id="user-handle" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
@@ -176,12 +176,13 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLHvz1BPtvFZPd6esrp7GMGYH1GcysnW3nQde06reAGMNSvd4ohLrUbI2OGrwA76JA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIb6Ptkl9cSbwpwg79jnfXaFWVrcYu4FJB6P6hD1lMrZi_y2Zyp58WM5VxQchktMle5A/exec";
     
     let MATERIALS = [];
     let CONTRACTS = [];
     let LOCATIONS = {};
-    let manifest = []; 
+    let localManifest = []; 
+    let cloudManifest = []; 
     let tracked = [];
     let filterMode = 'craftable';
 
@@ -194,17 +195,15 @@
 
             MATERIALS = d.materials || [];
             CONTRACTS = d.contracts || [];
-            manifest = JSON.parse(localStorage.getItem('wikelo-manifest-v2')) || [];
+            localManifest = JSON.parse(localStorage.getItem('wikelo-manifest-v2')) || [];
             tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
             
             document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
             document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
             
             renderTabs();
-            renderManifest();
             updateDisplay();
 
-            // Start Sync Loop
             setInterval(syncWithCloud, 15000);
             syncWithCloud();
         } catch (e) { console.error(e); }
@@ -247,37 +246,49 @@
         const qty = parseInt(qI.value);
         if (!qty || qty <= 0) return;
 
-        manifest.unshift({
+        localManifest.unshift({
             uid: Date.now(),
             id: id,
             qty: qty,
-            loc: (lI.value || "NOT_SPECIFIED").toUpperCase(),
-            user: (document.getElementById('user-handle').value || "ANON").toUpperCase()
+            loc: (lI.value || "STASH").toUpperCase()
         });
-        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
+        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(localManifest));
         qI.value = ''; lI.value = '';
-        renderManifest(); 
         updateDisplay();
         syncWithCloud();
     }
 
-    function renderManifest() {
+    function renderManifestList() {
         const list = document.getElementById('manifest-list');
         const header = list.querySelector('div');
         list.innerHTML = ''; list.appendChild(header);
-        manifest.forEach(e => {
+        
+        const handle = (document.getElementById('user-handle').value || "").toUpperCase();
+        
+        // Render Your Items
+        localManifest.forEach(e => {
             const mat = MATERIALS.find(m => m.id === e.id);
             const div = document.createElement('div');
             div.className = 'manifest-entry';
-            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | AUTH: ${e.user}</span></div><button class="del-mini" onclick="removeEntry(${e.uid})">X</button>`;
+            div.style.borderLeft = "3px solid var(--t-orange)";
+            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | AUTH: ${handle} (YOU)</span></div><button class="del-mini" onclick="removeEntry(${e.uid})">X</button>`;
+            list.appendChild(div);
+        });
+
+        // Render Teammate Items
+        cloudManifest.forEach(e => {
+            const mat = MATERIALS.find(m => m.id === e.id);
+            const div = document.createElement('div');
+            div.className = 'manifest-entry';
+            div.style.opacity = "0.7";
+            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | AUTH: ${e.user}</span></div>`;
             list.appendChild(div);
         });
     }
 
     function removeEntry(uid) {
-        manifest = manifest.filter(e => e.uid !== uid);
-        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(manifest));
-        renderManifest(); 
+        localManifest = localManifest.filter(e => e.uid !== uid);
+        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(localManifest));
         updateDisplay();
         syncWithCloud();
     }
@@ -290,18 +301,23 @@
         try {
             const payload = { 
                 action: "sync", 
-                squadCode: squad, 
-                handle: handle, 
-                manifest: JSON.stringify(manifest) 
+                squadCode: squad.toUpperCase(), 
+                handle: handle.toUpperCase(), 
+                manifest: JSON.stringify(localManifest) 
             };
 
-            await fetch(SCRIPT_URL, { 
+            const response = await fetch(SCRIPT_URL, { 
                 method: "POST", 
-                mode: "no-cors", 
                 body: JSON.stringify(payload) 
             });
 
-            // Trigger visual lamp pulse
+            const rawData = await response.json();
+            
+            if (Array.isArray(rawData)) {
+                cloudManifest = rawData.filter(item => item.user !== handle.toUpperCase());
+                updateDisplay();
+            }
+
             const lamp = document.getElementById('sync-lamp');
             lamp.classList.add('active');
             setTimeout(() => lamp.classList.remove('active'), 1500);
@@ -310,11 +326,14 @@
     }
 
     function updateDisplay() {
+        renderManifestList();
+        
         const grid = document.getElementById('contract-grid');
         const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
         
-        const totals = manifest.reduce((acc, curr) => {
+        const combined = [...localManifest, ...cloudManifest];
+        const totals = combined.reduce((acc, curr) => {
             acc[curr.id] = (acc[curr.id] || 0) + curr.qty;
             return acc;
         }, {});
@@ -331,16 +350,16 @@
                 const mat = MATERIALS.find(m => m.id === ing.id);
                 const locStr = LOCATIONS[ing.id] || "DATA_UNAVAILABLE";
                 
-                const squadEntries = manifest.filter(e => e.id === ing.id);
-                const authorityHTML = squadEntries.length > 0 ? 
+                const contributors = combined.filter(e => e.id === ing.id);
+                const authorityHTML = contributors.length > 0 ? 
                     `<div class="authority-box">` + 
-                    squadEntries.map(e => `<div class="auth-line"><span>[${e.qty}] @ ${e.loc}</span><b>${e.user}</b></div>`).join('') + 
+                    contributors.map(e => `<div class="auth-line"><span>[${e.qty}] @ ${e.loc}</span><b>${e.user === (document.getElementById('user-handle').value || "").toUpperCase() ? 'YOU' : e.user}</b></div>`).join('') + 
                     `</div>` : '';
 
                 return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}">
                     <div style="display:flex; justify-content:space-between; align-items: baseline;">
-                        <b style="font-size:15px;">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b>
-                        <span class="where-loc" style="text-align:right;"><span class="where-tag">WHERE:</span>${locStr}</span>
+                        <b style="font-size:15px; color:${stock >= ing.qty ? 'var(--success)' : 'inherit'}">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b>
+                        <span class="where-loc" style="text-align:right;"><span class="where-tag">REF:</span>${locStr}</span>
                     </div>
                     ${authorityHTML}
                 </li>`;
@@ -388,7 +407,7 @@
         syncWithCloud();
     }
 
-    function resetAll() { if(confirm("PERMANENT_PURGE_MANIFEST?")) { manifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); renderManifest(); updateDisplay(); syncWithCloud(); } }
+    function resetAll() { if(confirm("PERMANENT_PURGE_LOCAL_MANIFEST?")) { localManifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); updateDisplay(); syncWithCloud(); } }
     window.onload = loadSystemData;
 </script>
 </body>
