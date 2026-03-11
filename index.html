@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WIKELO::LOGISTICS_CLOUD_SYNC v2.0</title>
+    <title>WIKELO::LOGISTICS_CLOUD_SYNC v3.2</title>
     <style>
         :root { 
             --t-orange: #FF8C00; 
@@ -13,145 +13,77 @@
             --success: #00FF00;
             --error: #FF0000;
             --text-main: #FFFFFF;
-            --text-dim: #BBBBBB;
         }
-        
         * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--t-orange) #000; } 
         body { background: var(--bg); color: var(--text-main); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-
-        /* --- SIDEBAR --- */
-        .sidebar { 
-            width: 480px; 
-            border-right: 2px solid var(--border); 
-            display: flex; 
-            flex-direction: column; 
-            background: var(--bg); 
-            flex-shrink: 0; 
-            height: 100vh;
-        }
-
-        .sidebar-header { 
-            padding: 20px; 
-            border-bottom: 2px solid var(--border); 
-            background: #000;
-        }
-
-        .sidebar-split {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .sidebar-scroll-top { 
-            height: 50%; 
-            overflow-y: auto; 
-            padding: 15px; 
-            border-bottom: 2px solid var(--border); 
-            background: #050505;
-        }
-
-        .manifest-zone { 
-            height: 50%; 
-            background: #000; 
-            overflow-y: auto; 
-            padding: 15px; 
-        }
-
-        /* --- TABS & INPUTS --- */
+        .sidebar { width: 480px; border-right: 2px solid var(--border); display: flex; flex-direction: column; background: var(--bg); flex-shrink: 0; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 2px solid var(--border); background: #000; }
+        .sidebar-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar-scroll-top { height: 50%; overflow-y: auto; padding: 15px; border-bottom: 2px solid var(--border); background: #050505; }
+        .manifest-zone { height: 50%; background: #000; overflow-y: auto; padding: 15px; }
         .tab-header { border: 2px solid var(--border); color: var(--t-orange); padding: 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; text-transform: uppercase; background: #000; font-weight: bold; letter-spacing: 1px; }
         .tab-content { display: none; padding: 5px; border: 2px solid var(--border); border-top: none; background: #050505; }
         .tab-content.open { display: block; }
-
         .input-row { display: grid; grid-template-columns: 1fr 50px 80px 45px; gap: 8px; align-items: center; padding: 12px 6px; border-bottom: 1px solid #333; }
-        .input-row span { font-size: 12px; color: #fff; font-weight: bold; }
+        .input-row span { font-size: 12px; color: #fff; }
         .input-row input { background: #000; border: 1px solid #666; color: #fff; padding: 8px; font-size: 12px; width: 100%; outline: none; }
         .input-row input:focus { border-color: var(--t-orange); }
         .add-btn { background: var(--t-orange); color: #000; border: none; font-weight: bold; cursor: pointer; height: 32px; font-size: 16px; }
-
-        /* --- MANIFEST LIST --- */
-        .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
+        .manifest-entry { background: #0a0a0a; border: 1px solid #444; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; border-left: 3px solid var(--t-orange); }
         .m-info b { color: var(--t-orange); font-size: 13px; display: block; }
         .m-info span { font-size: 11px; color: #FFF; font-style: italic; }
         .del-mini { color: var(--error); border: 2px solid var(--error); background: transparent; font-size: 11px; cursor: pointer; padding: 6px 10px; font-weight: bold; }
         .del-mini:hover { background: var(--error); color: #000; }
-
-        /* --- SYNC LAMP --- */
         .sync-status { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--t-orange); font-weight: bold; }
         .lamp { width: 8px; height: 8px; border-radius: 50%; background: #222; border: 1px solid #444; transition: 0.3s; }
         .lamp.active { background: var(--success); box-shadow: 0 0 8px var(--success); border-color: #fff; }
-
-        /* --- MAIN CONTENT HEADER --- */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header-controls { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 20px 30px; 
-            border-bottom: 2px solid var(--border); 
-            background: #000; 
-        }
-
+        .header-controls { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid var(--border); background: #000; }
         .search-wrap { display: flex; align-items: center; gap: 10px; }
         .search-input { background: #000; border: 2px solid #444; color: #fff; padding: 10px; font-size: 12px; width: 220px; outline: none; }
         .search-input:focus { border-color: var(--t-orange); }
-
-        /* --- PIN STAR --- */
-        .pin-btn { background: transparent; border: none; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; padding: 0; }
-        .pin-btn svg { width: 22px; height: 22px; fill: none; stroke: var(--t-orange); stroke-width: 2.5; transition: all 0.2s; }
+        .pin-btn { background: transparent; border: none; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+        .pin-btn svg { width: 22px; height: 22px; fill: none; stroke: var(--t-orange); stroke-width: 2.5; }
         .pin-btn.active svg { fill: var(--t-orange); }
-
-        /* --- GRID & CARDS --- */
         .scroll-area { flex: 1; overflow-y: auto; padding: 30px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 30px; }
-
         .card { background: var(--card); border: 2px solid var(--border); padding: 25px; position: relative; }
         .card.craftable { border-top: 10px solid var(--success); }
-
         .reward-label { color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 6px 0; display: block; letter-spacing: 1.5px; }
-        
         .ingred-list { font-size: 14px; list-style: none; padding: 0; margin: 15px 0; }
         .ingred-list > li { margin-bottom: 22px; border-bottom: 1px solid #333; padding-bottom: 14px; }
-
         .authority-box { font-size: 11px; margin-top: 10px; background: rgba(255,140,0,0.12); padding: 10px; border-left: 3px solid var(--t-orange); color: #FFF; }
         .auth-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
         .auth-line b { color: var(--t-orange); }
-
         .where-loc { font-size: 10px; color: #DDD; margin-top: 4px; display: block; line-height: 1.4; }
         .where-tag { color: var(--t-orange); font-weight: bold; margin-right: 5px; }
-
         .btn { background: transparent; border: 2px solid var(--border); color: var(--t-orange); padding: 12px 24px; cursor: pointer; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-        .btn:hover { background: var(--t-orange); color: #000; }
+        .btn:hover:not(:disabled) { background: var(--t-orange); color: #000; }
         .btn.active { background: var(--t-orange); color: #000; }
-
-        @media (max-width: 1024px) {
-            .sidebar { width: 100%; height: auto; border-right: none; }
-            body { flex-direction: column; overflow-y: auto; }
-            .sidebar-split { height: 900px; }
-        }
+        .btn:disabled { border-color: #444; color: #444; cursor: not-allowed; }
+        @media (max-width: 1024px) { .sidebar { width: 100%; height: auto; border-right: none; } body { flex-direction: column; overflow-y: auto; } .sidebar-split { height: 900px; } }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V2.0 ]</h2>
+        <h2 style="color:var(--t-orange); font-size:15px; margin:0 0 10px 0; letter-spacing: 3px;">[ LOGISTICS_SYNC_V3.2 ]</h2>
         <div style="display:flex; gap:12px;">
             <input type="text" id="squad-code" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="SQUAD_CODE..." onchange="saveConfig()">
             <input type="text" id="user-handle" style="background:#000; border:2px solid #555; color:#fff; padding:10px; font-size:13px; width:50%;" placeholder="HANDLE..." onchange="saveConfig()">
         </div>
         <div class="sync-status">
             <div id="sync-lamp" class="lamp"></div>
-            <span>LINK_STATUS: STABLE</span>
+            <span>SHARED_AUTHORITY: ENABLED</span>
         </div>
     </div>
-
     <div class="sidebar-split">
         <div class="sidebar-scroll-top" id="inventory-tabs"></div>
         <div class="manifest-zone" id="manifest-list">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:2px solid #333; padding-bottom:10px;">
-                <h3 style="font-size:13px; color:var(--t-orange); margin:0; letter-spacing: 2px;">[ ACTIVE_MANIFEST ]</h3>
-                <button onclick="resetAll()" style="background:transparent; border:2px solid var(--error); color:var(--error); font-size:10px; padding:6px 12px; cursor:pointer; font-weight:bold;">PURGE_ALL</button>
+                <h3 style="font-size:13px; color:var(--t-orange); margin:0; letter-spacing: 2px;">[ SHARED_MANIFEST ]</h3>
+                <button onclick="resetAll()" style="background:transparent; border:2px solid var(--error); color:var(--error); font-size:10px; padding:6px 12px; cursor:pointer; font-weight:bold;">GLOBAL_PURGE</button>
             </div>
         </div>
     </div>
@@ -160,29 +92,25 @@
 <div class="main-content">
     <div class="header-controls">
         <h1 id="stats-header" style="margin:0; font-size: 20px; letter-spacing: 2px; color: #fff;">MANIFEST // <span style="color:var(--t-orange);">0 READY</span></h1>
-        
         <div class="search-wrap">
             <input type="text" id="manifest-search" class="search-input" placeholder="SEARCH CONTRACTS..." oninput="updateDisplay()">
-            <div class="filter-group" style="display:flex; gap:10px;">
+            <div class="filter-group">
                 <button class="btn" id="f-all" onclick="setFilter('all')">ALL</button>
                 <button class="btn active" id="f-craft" onclick="setFilter('craftable')">READY</button>
                 <button class="btn" id="f-track" onclick="setFilter('tracked')">PINNED</button>
             </div>
         </div>
     </div>
-    <div class="scroll-area">
-        <div id="contract-grid" class="grid"></div>
-    </div>
+    <div class="scroll-area"><div id="contract-grid" class="grid"></div></div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOPRcyz5anUXnIli82hbsW2Qc-D2PoVAvjsaxF1h9GcKnI583Bz-oFrCVjoNvgkTIJ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyVsL-fJlfSLgTdMz6cdtot_er8bGUPlLyB9rYO6EgJom4I-O1pDbYzSprzHERMA6y/exec";
     
     let MATERIALS = [];
     let CONTRACTS = [];
     let LOCATIONS = {};
-    let localManifest = []; 
-    let cloudManifest = []; 
+    let sharedManifest = []; 
     let tracked = [];
     let filterMode = 'craftable';
 
@@ -192,18 +120,14 @@
             const d = await dRes.json();
             const lRes = await fetch('locations.json');
             LOCATIONS = lRes.ok ? await lRes.json() : {};
-
             MATERIALS = d.materials || [];
             CONTRACTS = d.contracts || [];
-            localManifest = JSON.parse(localStorage.getItem('wikelo-manifest-v2')) || [];
+            sharedManifest = JSON.parse(localStorage.getItem('wikelo-manifest-v2')) || [];
             tracked = JSON.parse(localStorage.getItem('wikelo-tracked')) || [];
-            
             document.getElementById('squad-code').value = localStorage.getItem('wikelo-squad') || "";
             document.getElementById('user-handle').value = localStorage.getItem('wikelo-handle') || "";
-            
             renderTabs();
             updateDisplay();
-
             setInterval(syncWithCloud, 15000);
             syncWithCloud();
         } catch (e) { console.error(e); }
@@ -213,11 +137,9 @@
         const container = document.getElementById('inventory-tabs');
         container.innerHTML = '';
         const cats = { "currency": "Currency", "ores": "Ores", "creature": "Fauna", "medals": "Artifacts", "tech": "Tech", "weapons": "Weapons", "gear": "Gear" };
-        
         Object.entries(cats).forEach(([key, label]) => {
             const mats = MATERIALS.filter(m => m.cat === key);
             if (mats.length === 0) return;
-
             const header = document.createElement('div');
             header.className = 'tab-header';
             header.innerHTML = `<span>${label}</span><span>+</span>`;
@@ -226,7 +148,6 @@
                 c.classList.toggle('open');
                 header.querySelector('span:last-child').innerText = c.classList.contains('open') ? '-' : '+';
             };
-
             const content = document.createElement('div');
             content.className = 'tab-content';
             mats.forEach(mat => {
@@ -240,147 +161,94 @@
         });
     }
 
-    function addToManifest(id) {
-        const qI = document.getElementById(`qty-${id}`);
-        const lI = document.getElementById(`loc-${id}`);
-        const qty = parseInt(qI.value);
-        if (!qty || qty <= 0) return;
-
-        localManifest.unshift({
-            uid: Date.now(),
-            id: id,
-            qty: qty,
-            loc: (lI.value || "STASH").toUpperCase()
-        });
-        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(localManifest));
-        qI.value = ''; lI.value = '';
-        updateDisplay();
-        syncWithCloud();
-    }
-
-    function renderManifestList() {
-        const list = document.getElementById('manifest-list');
-        const header = list.querySelector('div');
-        list.innerHTML = ''; list.appendChild(header);
-        
-        const handle = (document.getElementById('user-handle').value || "").toUpperCase();
-        
-        // Render Your Items
-        localManifest.forEach(e => {
-            const mat = MATERIALS.find(m => m.id === e.id);
-            const div = document.createElement('div');
-            div.className = 'manifest-entry';
-            div.style.borderLeft = "3px solid var(--t-orange)";
-            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | AUTH: ${handle} (YOU)</span></div><button class="del-mini" onclick="removeEntry(${e.uid})">X</button>`;
-            list.appendChild(div);
-        });
-
-        // Render Teammate Items
-        cloudManifest.forEach(e => {
-            const mat = MATERIALS.find(m => m.id === e.id);
-            const div = document.createElement('div');
-            div.className = 'manifest-entry';
-            div.style.opacity = "0.7";
-            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | AUTH: ${e.user}</span></div>`;
-            list.appendChild(div);
-        });
-    }
-
-    function removeEntry(uid) {
-        localManifest = localManifest.filter(e => e.uid !== uid);
-        localStorage.setItem('wikelo-manifest-v2', JSON.stringify(localManifest));
-        updateDisplay();
-        syncWithCloud();
-    }
-
-    async function syncWithCloud() {
+    async function syncWithCloud(action = "sync") {
         const squad = document.getElementById('squad-code').value;
         const handle = document.getElementById('user-handle').value;
         if (!squad || !handle) return;
-        
         try {
             const payload = { 
-                action: "sync", 
+                action: action, 
                 squadCode: squad.toUpperCase(), 
                 handle: handle.toUpperCase(), 
-                manifest: JSON.stringify(localManifest) 
+                manifest: JSON.stringify(sharedManifest) 
             };
-
-            const response = await fetch(SCRIPT_URL, { 
-                method: "POST", 
-                body: JSON.stringify(payload) 
-            });
-
-            const rawData = await response.json();
-            
-            if (Array.isArray(rawData)) {
-                cloudManifest = rawData.filter(item => item.user !== handle.toUpperCase());
+            const response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+            const cloudData = await response.json();
+            if (Array.isArray(cloudData)) {
+                sharedManifest = cloudData;
+                localStorage.setItem('wikelo-manifest-v2', JSON.stringify(sharedManifest));
                 updateDisplay();
             }
-
             const lamp = document.getElementById('sync-lamp');
             lamp.classList.add('active');
             setTimeout(() => lamp.classList.remove('active'), 1500);
+        } catch (e) { console.error("SYNC_ERROR", e); }
+    }
 
-        } catch (e) { console.error("CLOUD_SYNC_ERROR", e); }
+    function addToManifest(id) {
+        const qI = document.getElementById(`qty-${id}`);
+        const lI = document.getElementById(`loc-${id}`);
+        const hI = document.getElementById('user-handle');
+        const qty = parseInt(qI.value);
+        if (!qty || qty <= 0) return;
+
+        // AUTH FIX: Snap the current name from the handle input
+        const currentHandle = (hI.value || "ANON").toUpperCase();
+
+        sharedManifest.unshift({
+            uid: Date.now(),
+            id: id,
+            qty: qty,
+            loc: (lI.value || "STASH").toUpperCase(),
+            user: currentHandle
+        });
+        
+        qI.value = ''; lI.value = '';
+        syncWithCloud();
+    }
+
+    function removeEntry(uid) {
+        sharedManifest = sharedManifest.filter(e => e.uid !== uid);
+        syncWithCloud();
     }
 
     function updateDisplay() {
-        renderManifestList();
+        const list = document.getElementById('manifest-list');
+        const listHeader = list.querySelector('div');
+        list.innerHTML = ''; list.appendChild(listHeader);
         
+        sharedManifest.forEach(e => {
+            const mat = MATERIALS.find(m => m.id === e.id);
+            const div = document.createElement('div');
+            div.className = 'manifest-entry';
+            div.innerHTML = `<div class="m-info"><b>${mat ? mat.name : e.id} (x${e.qty})</b><span>LOC: ${e.loc} | MOD: ${e.user}</span></div><button class="del-mini" onclick="removeEntry(${e.uid})">X</button>`;
+            list.appendChild(div);
+        });
+
         const grid = document.getElementById('contract-grid');
         const searchTerm = document.getElementById('manifest-search').value.toLowerCase();
         grid.innerHTML = '';
-        
-        const combined = [...localManifest, ...cloudManifest];
-        const totals = combined.reduce((acc, curr) => {
-            acc[curr.id] = (acc[curr.id] || 0) + curr.qty;
-            return acc;
-        }, {});
+        const totals = sharedManifest.reduce((acc, curr) => { acc[curr.id] = (acc[curr.id] || 0) + curr.qty; return acc; }, {});
 
         let readyCount = 0;
         CONTRACTS.forEach(c => {
             const isPinned = tracked.includes(c.id);
             if (!c.name.toLowerCase().includes(searchTerm) && !c.reward.toLowerCase().includes(searchTerm)) return;
-
             let canCraft = true;
             const ingreds = c.ingredients.map(ing => {
                 const stock = totals[ing.id] || 0;
                 if (stock < ing.qty) canCraft = false;
                 const mat = MATERIALS.find(m => m.id === ing.id);
                 const locStr = LOCATIONS[ing.id] || "DATA_UNAVAILABLE";
-                
-                const contributors = combined.filter(e => e.id === ing.id);
-                const authorityHTML = contributors.length > 0 ? 
-                    `<div class="authority-box">` + 
-                    contributors.map(e => `<div class="auth-line"><span>[${e.qty}] @ ${e.loc}</span><b>${e.user === (document.getElementById('user-handle').value || "").toUpperCase() ? 'YOU' : e.user}</b></div>`).join('') + 
-                    `</div>` : '';
-
-                return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}">
-                    <div style="display:flex; justify-content:space-between; align-items: baseline;">
-                        <b style="font-size:15px; color:${stock >= ing.qty ? 'var(--success)' : 'inherit'}">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b>
-                        <span class="where-loc" style="text-align:right;"><span class="where-tag">REF:</span>${locStr}</span>
-                    </div>
-                    ${authorityHTML}
-                </li>`;
+                const contributors = sharedManifest.filter(e => e.id === ing.id);
+                const authHTML = contributors.length > 0 ? `<div class="authority-box">` + contributors.map(e => `<div class="auth-line"><span>[${e.qty}] @ ${e.loc}</span><b>${e.user}</b></div>`).join('') + `</div>` : '';
+                return `<li class="${stock >= ing.qty ? 'status-ready' : 'status-missing'}"><div style="display:flex; justify-content:space-between; align-items: baseline;"><b style="color:${stock >= ing.qty ? 'var(--success)' : 'inherit'}">${stock}/${ing.qty} ${mat ? mat.name : ing.id}</b><span class="where-loc" style="text-align:right;"><span class="where-tag">LOC:</span>${locStr}</span></div>${authHTML}</li>`;
             }).join('');
-
             if (canCraft) readyCount++;
-            
             if (filterMode === 'all' || (filterMode === 'craftable' && canCraft) || (filterMode === 'tracked' && isPinned)) {
                 const card = document.createElement('div');
                 card.className = `card ${canCraft ? 'craftable' : ''}`;
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:12px;">
-                        <span style="font-size:10px; color:#AAA; font-weight:bold; text-transform:uppercase;">${c.cat}</span>
-                        <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')">
-                            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        </button>
-                    </div>
-                    <b style="font-size:18px;">${c.name}</b>
-                    <small class="reward-label">${c.reward}</small>
-                    <ul class="ingred-list">${ingreds}</ul>
-                    <button class="btn" style="width:100%" ${!canCraft ? 'disabled' : ''}>${canCraft ? 'INITIALIZE_HAND_IN' : 'RESOURCES_INSUFFICIENT'}</button>`;
+                card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:12px;"><span style="font-size:10px; color:#AAA; font-weight:bold; text-transform:uppercase;">${c.cat}</span><button class="pin-btn ${isPinned ? 'active' : ''}" onclick="toggleTrack('${c.id}')"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button></div><b style="font-size:18px;">${c.name}</b><small class="reward-label">${c.reward}</small><ul class="ingred-list">${ingreds}</ul><button class="btn" style="width:100%" ${!canCraft ? 'disabled' : ''}>${canCraft ? 'INITIALIZE_HAND_IN' : 'INSUFFICIENT'}</button>`;
                 grid.appendChild(card);
             }
         });
@@ -393,21 +261,14 @@
         localStorage.setItem('wikelo-tracked', JSON.stringify(tracked));
         updateDisplay();
     }
-
     function setFilter(f) { 
         filterMode = f; 
         document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
         document.getElementById('f-' + (f === 'craftable' ? 'craft' : f === 'all' ? 'all' : 'track')).classList.add('active');
         updateDisplay(); 
     }
-
-    function saveConfig() { 
-        localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); 
-        localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); 
-        syncWithCloud();
-    }
-
-    function resetAll() { if(confirm("PERMANENT_PURGE_LOCAL_MANIFEST?")) { localManifest = []; localStorage.setItem('wikelo-manifest-v2', "[]"); updateDisplay(); syncWithCloud(); } }
+    function saveConfig() { localStorage.setItem('wikelo-squad', document.getElementById('squad-code').value); localStorage.setItem('wikelo-handle', document.getElementById('user-handle').value); syncWithCloud(); }
+    function resetAll() { if(confirm("GLOBAL_PURGE: DELETE ALL SHARED MATERIALS?")) { sharedManifest = []; syncWithCloud("purge"); } }
     window.onload = loadSystemData;
 </script>
 </body>
