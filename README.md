@@ -1,4 +1,3 @@
-Wikelo Cloud Sync v1.0
 Wikelo Cloud Sync is a real-time, shared-authority logistics and inventory management tool. It is designed to coordinate squad members by turning a standard Google Sheet into a live, collaborative database for tracking materials, locations, and contract completions.
 
 🚀 Key Features
